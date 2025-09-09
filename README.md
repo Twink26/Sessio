@@ -6,7 +6,7 @@
 
 A VS Code extension that provides an AI-generated summary of your previous coding session to help you resume work efficiently. Never lose track of what you were working on again!
 
-## 🚀 Features
+##  Features
 
 ### Core Functionality
 - **Automatic Session Tracking**: Monitors file changes, Git commits, and terminal errors
@@ -25,32 +25,32 @@ A VS Code extension that provides an AI-generated summary of your previous codin
 - **Error Handling**: Robust error handling with detailed logging
 - **Configurable**: Extensive configuration options to customize behavior
 
-## 📸 Screenshots
+
 
 ### Session Recap Panel
 The main sidebar panel showing your previous session summary:
 
 ```
 ┌─ Session Recap ──────────────────┐
-│ 📊 Session Overview              │
+│ Session Overview              │
 │ Session ID: abc123               │
 │ Started: 2024-01-15 09:30 AM     │
 │ Duration: 2h 45m                 │
 │ Status: ✅ Completed             │
 │                                  │
-│ 📁 Files Edited (3)             │
+│  Files Edited (3)             │
 │ ▶ src/components/Header.tsx      │
 │ ▶ src/styles/main.css            │
 │ ▶ README.md                      │
 │                                  │
-│ 🔄 Git Commits (2)              │
+│  Git Commits (2)              │
 │ ▶ feat: add responsive header    │
 │ ▶ fix: css styling issues        │
 │                                  │
-│ ❌ Terminal Errors (1)           │
+│  Terminal Errors (1)           │
 │ ▶ TypeError: Cannot read...      │
 │                                  │
-│ 🤖 AI Summary                    │
+│  AI Summary                    │
 │ You worked on improving the      │
 │ header component, adding         │
 │ responsive design and fixing     │
@@ -58,7 +58,7 @@ The main sidebar panel showing your previous session summary:
 └──────────────────────────────────┘
 ```
 
-## 🛠️ Installation
+##  Installation
 
 ### From VS Code Marketplace
 1. Open VS Code
@@ -81,7 +81,7 @@ npm run compile
 # Press F5 to launch Extension Development Host
 ```
 
-## ⚙️ Configuration
+##  Configuration
 
 The extension provides extensive configuration options through VS Code settings:
 
@@ -128,7 +128,7 @@ The extension provides extensive configuration options through VS Code settings:
 }
 ```
 
-## 🎯 Usage
+##  Usage
 
 ### Getting Started
 1. Install the extension
@@ -154,7 +154,7 @@ The extension provides extensive configuration options through VS Code settings:
 3. Configure privacy settings to control what data is shared
 4. View team dashboard in the sidebar
 
-## 📋 Commands
+##  Commands
 
 Access these commands through the Command Palette (Ctrl+Shift+P):
 
@@ -169,7 +169,7 @@ Access these commands through the Command Palette (Ctrl+Shift+P):
 | `Session Recap: Opt Out of Team Sharing` | Disable sharing with team |
 | `Session Recap: Show Telemetry Summary` | View extension performance data |
 
-## 🔧 Development
+##  Development
 
 ### Prerequisites
 - Node.js 16.x or higher
@@ -229,7 +229,7 @@ session-recap-extension/
 └── README.md                    # This file
 ```
 
-## 🔒 Privacy & Security
+##  Privacy & Security
 
 ### Data Collection
 The extension only collects data locally within your VS Code workspace:
@@ -270,11 +270,11 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 - Follow the existing code style
 - Ensure all tests pass before submitting
 
-## 📝 License
+##  License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🐛 Issues & Support
+##  Issues & Support
 
 ### Reporting Issues
 If you encounter any problems:
@@ -286,13 +286,8 @@ If you encounter any problems:
    - Steps to reproduce
    - Log output (if relevant)
 
-### Getting Help
-- 📖 [Documentation](https://github.com/your-username/session-recap-extension/wiki)
-- 💬 [Discussions](https://github.com/your-username/session-recap-extension/discussions)
-- 🐛 [Bug Reports](https://github.com/your-username/session-recap-extension/issues)
-- ✨ [Feature Requests](https://github.com/your-username/session-recap-extension/issues)
 
-## 🚀 Roadmap
+##  Roadmap
 
 ### Upcoming Features
 - [ ] Integration with more AI providers
@@ -305,11 +300,11 @@ If you encounter any problems:
 ### Version History
 - **0.0.1** - Initial release with core session tracking and AI summaries
 
-## 🙏 Acknowledgments
+##  Acknowledgments
 
 - Thanks to the VS Code team for the excellent extension API
 - OpenAI for providing AI capabilities
-- The open-source community for inspiration and feedback
+
 
 ---
 
