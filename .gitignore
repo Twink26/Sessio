@@ -3,11 +3,11 @@ node_modules/
 .eslintrc.json
 
 package-lock.json
-
+Launchpad_project.md
 specs
 
 tconfig.json
-
+TESTING.md
 out/interfaces
 out/models 
 out/services

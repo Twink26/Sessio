@@ -10,6 +10,9 @@ export interface StoredSession {
   gitCommits: StoredGitCommit[];
   terminalErrors: StoredTerminalError[];
   aiSummary?: string;
+  notes?: string;
+  tags?: string[];
+  productivityScore?: number;
   version: string; // for schema migration
 }
 

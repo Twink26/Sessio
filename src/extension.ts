@@ -10,6 +10,9 @@ import { ConfigurationService } from './services/ConfigurationService';
 import { ErrorHandlingService } from './services/ErrorHandlingService';
 import { PerformanceMonitor } from './services/PerformanceMonitor';
 import { LogLevel } from './services/LoggingService';
+import { SessionHistoryService } from './services/SessionHistoryService';
+import { ExportImportService } from './services/ExportImportService';
+import { ProductivityCalculator } from './services/ProductivityCalculator';
 
 let sessionTracker: SessionTracker;
 let sidebarProvider: SidebarPanelProvider;
@@ -21,6 +24,8 @@ let configurationService: ConfigurationService;
 let errorHandlingService: ErrorHandlingService;
 let performanceMonitor: PerformanceMonitor;
 let outputChannel: vscode.OutputChannel;
+let sessionHistoryService: SessionHistoryService;
+let exportImportService: ExportImportService;
 
 /**
  * Extension activation function
@@ -96,6 +101,15 @@ export async function activate(context: vscode.ExtensionContext) {
                 sessionTracker = new SessionTracker(context, sidebarProvider);
             },
             { component: 'Extension', operation: 'initializeSessionTracker' }
+        );
+
+        // Initialize session history service
+        await errorHandlingService.executeWithErrorHandling(
+            async () => {
+                sessionHistoryService = new SessionHistoryService(context);
+                exportImportService = new ExportImportService(context);
+            },
+            { component: 'Extension', operation: 'initializeHistoryService' }
         );
 
         // Set up file click handler for sidebar
@@ -458,6 +472,242 @@ function registerCommands(context: vscode.ExtensionContext) {
         }
     });
 
+    // Command to view session history
+    const viewHistoryCommand = vscode.commands.registerCommand('sessionRecap.viewHistory', async () => {
+        if (errorHandlingService && sessionHistoryService) {
+            await errorHandlingService.executeWithErrorHandling(
+                async () => {
+                    const sessions = await sessionHistoryService.getAllSessions();
+                    if (sessions.length === 0) {
+                        vscode.window.showInformationMessage('No session history available');
+                        return;
+                    }
+
+                    const items = sessions.map(session => ({
+                        label: `${session.startTime.toLocaleDateString()} ${session.startTime.toLocaleTimeString()}`,
+                        description: `${session.editedFiles.length} files, ${session.gitCommits.length} commits`,
+                        detail: session.summary || 'No summary available',
+                        sessionId: session.sessionId
+                    }));
+
+                    const selected = await vscode.window.showQuickPick(items, {
+                        placeHolder: 'Select a session to view'
+                    });
+
+                    if (selected) {
+                        const session = sessions.find(s => s.sessionId === selected.sessionId);
+                        if (session) {
+                            sidebarProvider.updateContent(session);
+                        }
+                    }
+                },
+                { component: 'Extension', operation: 'viewHistory' }
+            );
+        }
+    });
+
+    // Command to view analytics
+    const viewAnalyticsCommand = vscode.commands.registerCommand('sessionRecap.viewAnalytics', async () => {
+        if (errorHandlingService && sessionHistoryService) {
+            await errorHandlingService.executeWithErrorHandling(
+                async () => {
+                    const stats = await sessionHistoryService.getSessionStatistics();
+                    const avgDuration = Math.round(stats.averageSessionDuration / 60000);
+                    const totalHours = Math.round(stats.totalDuration / (1000 * 60 * 60));
+                    
+                    const content = `# Session Analytics
+
+## Overview
+- **Total Sessions**: ${stats.totalSessions}
+- **Total Time**: ${totalHours} hours
+- **Total Files Edited**: ${stats.totalFilesEdited}
+- **Total Commits**: ${stats.totalCommits}
+- **Total Errors**: ${stats.totalErrors}
+
+## Averages
+- **Average Session Duration**: ${avgDuration} minutes
+- **Average Files per Session**: ${stats.averageFilesPerSession.toFixed(1)}
+- **Average Commits per Session**: ${stats.averageCommitsPerSession.toFixed(1)}
+
+## Insights
+- **Most Active Day**: ${stats.mostActiveDay || 'N/A'}
+- **Longest Session**: ${stats.longestSession ? ProductivityCalculator.formatDuration(stats.longestSession) : 'N/A'}
+- **Shortest Session**: ${stats.shortestSession ? ProductivityCalculator.formatDuration(stats.shortestSession) : 'N/A'}
+`;
+
+                    const doc = await vscode.workspace.openTextDocument({
+                        content: content,
+                        language: 'markdown'
+                    });
+                    await vscode.window.showTextDocument(doc);
+                },
+                { component: 'Extension', operation: 'viewAnalytics' }
+            );
+        }
+    });
+
+    // Command to export sessions
+    const exportSessionsCommand = vscode.commands.registerCommand('sessionRecap.exportSessions', async () => {
+        if (errorHandlingService && sessionHistoryService && exportImportService) {
+            await errorHandlingService.executeWithErrorHandling(
+                async () => {
+                    const format = await vscode.window.showQuickPick(['JSON', 'CSV'], {
+                        placeHolder: 'Select export format'
+                    });
+
+                    if (!format) return;
+
+                    const sessions = await sessionHistoryService.getAllSessions();
+                    if (sessions.length === 0) {
+                        vscode.window.showInformationMessage('No sessions to export');
+                        return;
+                    }
+
+                    try {
+                        const filePath = format === 'JSON'
+                            ? await exportImportService.exportToJSON(sessions)
+                            : await exportImportService.exportToCSV(sessions);
+                        
+                        vscode.window.showInformationMessage(`Sessions exported to ${filePath}`);
+                    } catch (error) {
+                        vscode.window.showErrorMessage(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                    }
+                },
+                { component: 'Extension', operation: 'exportSessions' }
+            );
+        }
+    });
+
+    // Command to import sessions
+    const importSessionsCommand = vscode.commands.registerCommand('sessionRecap.importSessions', async () => {
+        if (errorHandlingService && exportImportService && sessionTracker) {
+            await errorHandlingService.executeWithErrorHandling(
+                async () => {
+                    try {
+                        const sessions = await exportImportService.importFromJSON();
+                        if (sessions.length === 0) {
+                            vscode.window.showInformationMessage('No sessions found in import file');
+                            return;
+                        }
+
+                        const confirm = await vscode.window.showWarningMessage(
+                            `Import ${sessions.length} session(s)?`,
+                            'Yes', 'No'
+                        );
+
+                        if (confirm === 'Yes') {
+                            // Save imported sessions
+                            for (const session of sessions) {
+                                await sessionTracker['sessionStorage'].saveSession(session);
+                            }
+                            vscode.window.showInformationMessage(`Imported ${sessions.length} session(s) successfully`);
+                        }
+                    } catch (error) {
+                        vscode.window.showErrorMessage(`Import failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                    }
+                },
+                { component: 'Extension', operation: 'importSessions' }
+            );
+        }
+    });
+
+    // Command to add notes to current session
+    const addNotesCommand = vscode.commands.registerCommand('sessionRecap.addNotes', async () => {
+        if (errorHandlingService && sessionTracker) {
+            await errorHandlingService.executeWithErrorHandling(
+                async () => {
+                    const currentSession = sessionTracker.getCurrentSession();
+                    const existingNotes = currentSession.notes || '';
+                    
+                    const notes = await vscode.window.showInputBox({
+                        prompt: 'Add notes to this session',
+                        value: existingNotes,
+                        placeHolder: 'Enter your notes...'
+                    });
+
+                    if (notes !== undefined) {
+                        currentSession.notes = notes;
+                        // Update session in storage
+                        await sessionTracker['sessionStorage'].saveSession(currentSession);
+                        sidebarProvider.updateContent(currentSession);
+                        vscode.window.showInformationMessage('Notes added to session');
+                    }
+                },
+                { component: 'Extension', operation: 'addNotes' }
+            );
+        }
+    });
+
+    // Command to add tags to current session
+    const addTagsCommand = vscode.commands.registerCommand('sessionRecap.addTags', async () => {
+        if (errorHandlingService && sessionTracker && sessionHistoryService) {
+            await errorHandlingService.executeWithErrorHandling(
+                async () => {
+                    const currentSession = sessionTracker.getCurrentSession();
+                    const existingTags = currentSession.tags || [];
+                    const allTags = await sessionHistoryService.getAllTags();
+                    
+                    const tagInput = await vscode.window.showInputBox({
+                        prompt: 'Add tags (comma-separated)',
+                        value: existingTags.join(', '),
+                        placeHolder: 'e.g., feature, bugfix, refactor'
+                    });
+
+                    if (tagInput !== undefined) {
+                        const tags = tagInput.split(',').map(t => t.trim()).filter(t => t.length > 0);
+                        currentSession.tags = tags;
+                        // Update session in storage
+                        await sessionTracker['sessionStorage'].saveSession(currentSession);
+                        sidebarProvider.updateContent(currentSession);
+                        vscode.window.showInformationMessage(`Tags added: ${tags.join(', ')}`);
+                    }
+                },
+                { component: 'Extension', operation: 'addTags' }
+            );
+        }
+    });
+
+    // Command to search sessions
+    const searchSessionsCommand = vscode.commands.registerCommand('sessionRecap.searchSessions', async () => {
+        if (errorHandlingService && sessionHistoryService) {
+            await errorHandlingService.executeWithErrorHandling(
+                async () => {
+                    const query = await vscode.window.showInputBox({
+                        prompt: 'Search sessions',
+                        placeHolder: 'Enter search query...'
+                    });
+
+                    if (query) {
+                        const results = await sessionHistoryService.searchSessions(query);
+                        if (results.length === 0) {
+                            vscode.window.showInformationMessage('No sessions found');
+                            return;
+                        }
+
+                        const items = results.map(session => ({
+                            label: `${session.startTime.toLocaleDateString()} ${session.startTime.toLocaleTimeString()}`,
+                            description: `${session.editedFiles.length} files, ${session.gitCommits.length} commits`,
+                            detail: session.summary || 'No summary available',
+                            sessionId: session.sessionId
+                        }));
+
+                        const selected = await vscode.window.showQuickPick(items, {
+                            placeHolder: `Found ${results.length} session(s)`
+                        });
+
+                        if (selected) {
+                            const session = results.find(s => s.sessionId === selected.sessionId);
+                            if (session) {
+                                sidebarProvider.updateContent(session);
+                            }
+                        }
+                    }
+                },
+                { component: 'Extension', operation: 'searchSessions' }
+            );
+        }
+    });
+
     context.subscriptions.push(
         refreshCommand, 
         clearCommand, 
@@ -466,6 +716,13 @@ function registerCommands(context: vscode.ExtensionContext) {
         optOutCommand, 
         showLogsCommand,
         showTelemetryCommand,
-        setLogLevelCommand
+        setLogLevelCommand,
+        viewHistoryCommand,
+        viewAnalyticsCommand,
+        exportSessionsCommand,
+        importSessionsCommand,
+        addNotesCommand,
+        addTagsCommand,
+        searchSessionsCommand
     );
 }

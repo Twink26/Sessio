@@ -292,6 +292,8 @@ describe('Webview Communication Integration Tests', () => {
             const teamProvider = new TeamDashboardProvider_1.TeamDashboardProvider(mockContext.extensionUri);
             teamProvider.resolveWebviewView(mockWebviewView, {}, {});
             const teamData = {
+                teamId: 'test-team',
+                aggregatedAt: new Date(),
                 members: [
                     {
                         id: 'user1',

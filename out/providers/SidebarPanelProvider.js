@@ -390,6 +390,40 @@ class SidebarPanelProvider {
 
                         let html = '';
 
+                        // Session Overview section
+                        html += '<div class="section">';
+                        html += '<div class="section-title">📊 Session Overview</div>';
+                        const duration = sessionData.endTime 
+                            ? Math.round((sessionData.endTime.getTime() - sessionData.startTime.getTime()) / 60000)
+                            : 'In Progress';
+                        const durationText = typeof duration === 'number' ? duration + ' minutes' : duration;
+                        html += '<div style="margin-bottom: 8px;">';
+                        html += '<div style="font-size: 12px; color: var(--vscode-descriptionForeground); margin-bottom: 4px;">Duration: <strong>' + durationText + '</strong></div>';
+                        html += '<div style="font-size: 12px; color: var(--vscode-descriptionForeground); margin-bottom: 4px;">Started: ' + formatTimestamp(sessionData.startTime) + '</div>';
+                        html += '</div>';
+                        if (sessionData.productivityScore !== undefined) {
+                            const scoreColor = sessionData.productivityScore >= 80 ? '#4caf50' : 
+                                             sessionData.productivityScore >= 60 ? '#8bc34a' :
+                                             sessionData.productivityScore >= 40 ? '#ff9800' : '#f44336';
+                            html += '<div style="margin-top: 8px; padding: 8px; background: var(--vscode-input-background); border-radius: 4px;">';
+                            html += '<div style="font-size: 11px; color: var(--vscode-descriptionForeground); margin-bottom: 4px;">Productivity Score</div>';
+                            html += '<div style="display: flex; align-items: center; gap: 8px;">';
+                            html += '<div style="flex: 1; height: 8px; background: var(--vscode-progressBar-background); border-radius: 4px; overflow: hidden;">';
+                            html += '<div style="height: 100%; width: ' + sessionData.productivityScore + '%; background: ' + scoreColor + '; transition: width 0.3s;"></div>';
+                            html += '</div>';
+                            html += '<span style="font-weight: 600; font-size: 13px; color: ' + scoreColor + ';">' + sessionData.productivityScore + '</span>';
+                            html += '</div>';
+                            html += '</div>';
+                        }
+                        if (sessionData.tags && sessionData.tags.length > 0) {
+                            html += '<div style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px;">';
+                            sessionData.tags.forEach(tag => {
+                                html += '<span style="font-size: 10px; padding: 2px 6px; background: var(--vscode-textLink-foreground); color: var(--vscode-editor-background); border-radius: 3px;">' + escapeHtml(tag) + '</span>';
+                            });
+                            html += '</div>';
+                        }
+                        html += '</div>';
+
                         // AI Summary section
                         html += '<div class="section">';
                         html += '<div class="section-title">📋 Session Summary</div>';
@@ -399,6 +433,14 @@ class SidebarPanelProvider {
                             html += '<div class="empty-state">No AI summary available</div>';
                         }
                         html += '</div>';
+
+                        // Notes section
+                        if (sessionData.notes) {
+                            html += '<div class="section">';
+                            html += '<div class="section-title">📝 Notes</div>';
+                            html += '<div style="padding: 8px; background: var(--vscode-textBlockQuote-background); border-left: 3px solid var(--vscode-textLink-foreground); border-radius: 4px; font-size: 13px; line-height: 1.4; white-space: pre-wrap;">' + escapeHtml(sessionData.notes) + '</div>';
+                            html += '</div>';
+                        }
 
                         // Files section
                         html += '<div class="section">';

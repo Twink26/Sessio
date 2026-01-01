@@ -13,4 +13,7 @@ export interface SessionData {
   gitCommits: GitCommit[];
   terminalErrors: TerminalError[];
   summary?: string;
+  notes?: string; // User-added notes
+  tags?: string[]; // User-defined tags
+  productivityScore?: number; // Calculated productivity score (0-100)
 }
