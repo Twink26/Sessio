@@ -1,11 +1,12 @@
 # Node.js dependencies
 node_modules/
 .eslintrc.json
-
+FEATURES.md
 package-lock.json
 Launchpad_project.md
 specs
-
+Features_Added.md
+LAUNCH_AND_PUBLISH.md
 tconfig.json
 TESTING.md
 out/interfaces
