@@ -296,28 +296,42 @@ describe('Webview Communication Integration Tests', () => {
                 aggregatedAt: new Date(),
                 members: [
                     {
-                        id: 'user1',
-                        name: 'John Doe',
-                        lastSession: {
+                        member: {
+                            id: 'user1',
+                            name: 'John Doe',
+                            email: 'john@example.com',
+                            isOnline: true,
+                            lastActive: new Date()
+                        },
+                        sessionData: {
                             sessionId: 'session1',
                             startTime: new Date(),
                             editedFiles: [],
                             gitCommits: [],
                             terminalErrors: [],
                             summary: 'User 1 session'
-                        }
+                        },
+                        hasOptedIn: true,
+                        lastUpdated: new Date()
                     },
                     {
-                        id: 'user2',
-                        name: 'Jane Smith',
-                        lastSession: {
+                        member: {
+                            id: 'user2',
+                            name: 'Jane Smith',
+                            email: 'jane@example.com',
+                            isOnline: false,
+                            lastActive: new Date()
+                        },
+                        sessionData: {
                             sessionId: 'session2',
                             startTime: new Date(),
                             editedFiles: [],
                             gitCommits: [],
                             terminalErrors: [],
                             summary: 'User 2 session'
-                        }
+                        },
+                        hasOptedIn: true,
+                        lastUpdated: new Date()
                     }
                 ]
             };
@@ -325,8 +339,8 @@ describe('Webview Communication Integration Tests', () => {
             teamProvider.updateContent(teamData);
             // Assert
             expect(mockWebview.postMessage).toHaveBeenCalledWith({
-                command: 'updateTeamData',
-                data: teamData
+                type: 'updateTeamData',
+                teamData
             });
         });
     });
@@ -527,22 +541,23 @@ describe('Webview Communication Integration Tests', () => {
             expect(vscode.workspace.openTextDocument).toHaveBeenCalled();
             expect(vscode.window.showTextDocument).toHaveBeenCalled();
         });
-        test('should handle refresh workflow', () => {
+        test('should handle file click workflow', () => {
             // Arrange
             const sidebarProvider = new SidebarPanelProvider_1.SidebarPanelProvider(mockContext.extensionUri);
             sidebarProvider.resolveWebviewView(mockWebviewView, {}, {});
-            let refreshTriggered = false;
-            sidebarProvider.onRefresh(() => {
-                refreshTriggered = true;
+            let clickedPath;
+            sidebarProvider.onFileClick((filePath) => {
+                clickedPath = filePath;
             });
-            // Act - Simulate refresh from webview
+            // Act - Simulate file click from webview
             if (messageCallback) {
                 messageCallback({
-                    command: 'refresh'
+                    type: 'fileClick',
+                    filePath: 'src/test.ts'
                 });
             }
             // Assert
-            expect(refreshTriggered).toBe(true);
+            expect(clickedPath).toBe('src/test.ts');
         });
     });
 });

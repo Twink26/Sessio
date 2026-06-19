@@ -5,6 +5,7 @@ import { SessionData } from '../../models/SessionData';
 import { FileEdit } from '../../models/FileEdit';
 import { GitCommit } from '../../models/GitCommit';
 import { TerminalError } from '../../models/TerminalError';
+import { TeamSessionData } from '../../interfaces/ITeamDataAggregator';
 
 // Mock VS Code API with webview support
 jest.mock('vscode', () => ({
@@ -313,33 +314,47 @@ describe('Webview Communication Integration Tests', () => {
             const teamProvider = new TeamDashboardProvider(mockContext.extensionUri);
             teamProvider.resolveWebviewView(mockWebviewView, {} as any, {} as any);
 
-            const teamData = {
+            const teamData: TeamSessionData = {
                 teamId: 'test-team',
                 aggregatedAt: new Date(),
                 members: [
                     {
-                        id: 'user1',
-                        name: 'John Doe',
-                        lastSession: {
+                        member: {
+                            id: 'user1',
+                            name: 'John Doe',
+                            email: 'john@example.com',
+                            isOnline: true,
+                            lastActive: new Date()
+                        },
+                        sessionData: {
                             sessionId: 'session1',
                             startTime: new Date(),
                             editedFiles: [],
                             gitCommits: [],
                             terminalErrors: [],
                             summary: 'User 1 session'
-                        }
+                        },
+                        hasOptedIn: true,
+                        lastUpdated: new Date()
                     },
                     {
-                        id: 'user2',
-                        name: 'Jane Smith',
-                        lastSession: {
+                        member: {
+                            id: 'user2',
+                            name: 'Jane Smith',
+                            email: 'jane@example.com',
+                            isOnline: false,
+                            lastActive: new Date()
+                        },
+                        sessionData: {
                             sessionId: 'session2',
                             startTime: new Date(),
                             editedFiles: [],
                             gitCommits: [],
                             terminalErrors: [],
                             summary: 'User 2 session'
-                        }
+                        },
+                        hasOptedIn: true,
+                        lastUpdated: new Date()
                     }
                 ]
             };
@@ -349,8 +364,8 @@ describe('Webview Communication Integration Tests', () => {
 
             // Assert
             expect(mockWebview.postMessage).toHaveBeenCalledWith({
-                command: 'updateTeamData',
-                data: teamData
+                type: 'updateTeamData',
+                teamData
             });
         });
     });
@@ -592,25 +607,26 @@ describe('Webview Communication Integration Tests', () => {
             expect(vscode.window.showTextDocument).toHaveBeenCalled();
         });
 
-        test('should handle refresh workflow', () => {
+        test('should handle file click workflow', () => {
             // Arrange
             const sidebarProvider = new SidebarPanelProvider(mockContext.extensionUri);
             sidebarProvider.resolveWebviewView(mockWebviewView, {} as any, {} as any);
 
-            let refreshTriggered = false;
-            sidebarProvider.onRefresh(() => {
-                refreshTriggered = true;
+            let clickedPath: string | undefined;
+            sidebarProvider.onFileClick((filePath) => {
+                clickedPath = filePath;
             });
 
-            // Act - Simulate refresh from webview
+            // Act - Simulate file click from webview
             if (messageCallback) {
                 messageCallback({
-                    command: 'refresh'
+                    type: 'fileClick',
+                    filePath: 'src/test.ts'
                 });
             }
 
             // Assert
-            expect(refreshTriggered).toBe(true);
+            expect(clickedPath).toBe('src/test.ts');
         });
     });
 });

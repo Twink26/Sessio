@@ -12,6 +12,3 @@ TESTING.md
 out/interfaces
 out/models 
 out/services
-
-src/services
-src/providers
