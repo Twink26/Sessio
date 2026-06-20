@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Session Recap — Live Shared Sessions</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">Session Recap extension</p>
+      <h1>Real coding sessions, shared on purpose</h1>
+      <p class="subtitle">
+        This page shows <strong>actual</strong> session summaries submitted by developers who opted in.
+        No fake teammates. No random demo data. Just real work, when people choose to share it.
+      </p>
+      <div class="hero-actions">
+        <a class="btn primary" href="https://marketplace.visualstudio.com/" target="_blank" rel="noopener">Get the VS Code extension</a>
+        <button class="btn secondary" id="refreshBtn" type="button">Refresh feed</button>
+      </div>
+      <p class="status" id="statusLine">Loading shared sessions…</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <section id="emptyState" class="empty hidden">
+      <div class="empty-icon">📭</div>
+      <h2>No shared sessions yet</h2>
+      <p>
+        Install the extension, enable sharing in settings, opt in, and finish a coding session.
+        Your summary will appear here — for real.
+      </p>
+    </section>
+
+    <section id="sessionGrid" class="grid"></section>
+  </main>
+
+  <footer class="footer">
+    <p>
+      Data is submitted only when a user explicitly opts in via the Session Recap extension.
+      Summaries are filtered by each user's privacy settings before upload.
+    </p>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>

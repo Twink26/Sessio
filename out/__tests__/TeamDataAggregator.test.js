@@ -103,7 +103,7 @@ describe('TeamDataAggregator', () => {
                 canViewTeamData: true,
                 canViewMemberDetails: true,
                 isTeamLead: false,
-                teamId: 'team-test-workspace'
+                teamId: 'public-feed'
             });
         });
     });

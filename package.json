@@ -1,8 +1,9 @@
 {
   "name": "session-recap-extension",
-  "displayName": "Session Recap",
+  "displayName": "Sessio",
   "description": "Provides an AI-generated summary of your previous coding session to help you resume work efficiently",
   "version": "0.0.1",
+  "publisher": "Twinkle-rana",
   "engines": {
     "vscode": "^1.74.0"
   },
@@ -103,6 +104,11 @@
         "command": "sessionRecap.searchSessions",
         "title": "Search Sessions",
         "icon": "$(search)"
+      },
+      {
+        "command": "sessionRecap.openDashboard",
+        "title": "Open Public Session Feed",
+        "icon": "$(globe)"
       }
     ],
     "menus": {
@@ -233,6 +239,16 @@
           "type": "boolean",
           "default": true,
           "description": "Enable productivity score calculation"
+        },
+        "sessionRecap.shareApiUrl": {
+          "type": "string",
+          "default": "http://localhost:3847",
+          "description": "Base URL of the public Session Recap sharing API and dashboard. Set empty to disable remote sharing."
+        },
+        "sessionRecap.contributorDisplayName": {
+          "type": "string",
+          "default": "",
+          "description": "Display name on the public feed (defaults to git user.name)"
         }
       }
     },
@@ -276,7 +292,9 @@
     "package": "vsce package",
     "publish:patch": "vsce publish patch",
     "publish:minor": "vsce publish minor",
-    "publish:major": "vsce publish major"
+    "publish:major": "vsce publish major",
+    "server": "cd server && npm install && npm start",
+    "server:dev": "cd server && npm install && npm run dev"
   },
   "devDependencies": {
     "@types/node": "16.x",

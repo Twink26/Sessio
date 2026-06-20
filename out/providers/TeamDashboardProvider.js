@@ -379,7 +379,7 @@ class TeamDashboardProvider {
                         <div class="header-title">
                             👥 Team Dashboard
                         </div>
-                        <div class="header-subtitle">Team session activity and insights</div>
+                        <div class="header-subtitle">Real opt-in session summaries from the public feed</div>
                     </div>
                     
                     <div id="content">
@@ -533,9 +533,9 @@ class TeamDashboardProvider {
                         content.innerHTML = \`
                             <div class="message-state">
                                 <div class="message-icon">👥</div>
-                                <div class="message-title">Join Team Dashboard</div>
-                                <div class="message-text">Opt in to team data sharing to view and contribute to the team dashboard.</div>
-                                <button class="action-button" onclick="optIn()">Opt In to Team Sharing</button>
+                                <div class="message-title">Share your sessions publicly</div>
+                                <div class="message-text">Opt in to post your real session summaries to the public Session Recap feed. No fake teammates — only submissions from people who choose to share.</div>
+                                <button class="action-button" onclick="optIn()">Opt In to Public Sharing</button>
                             </div>
                         \`;
                     }

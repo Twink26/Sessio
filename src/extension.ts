@@ -13,6 +13,7 @@ import { LogLevel } from './services/LoggingService';
 import { SessionHistoryService } from './services/SessionHistoryService';
 import { ExportImportService } from './services/ExportImportService';
 import { ProductivityCalculator } from './services/ProductivityCalculator';
+import { ShareApiClient } from './services/ShareApiClient';
 
 let sessionTracker: SessionTracker;
 let sidebarProvider: SidebarPanelProvider;
@@ -708,6 +709,15 @@ function registerCommands(context: vscode.ExtensionContext) {
         }
     });
 
+    const openDashboardCommand = vscode.commands.registerCommand('sessionRecap.openDashboard', async () => {
+        const apiUrl = ShareApiClient.getApiBaseUrl();
+        if (!apiUrl) {
+            vscode.window.showWarningMessage('Set sessionRecap.shareApiUrl in settings to open the public feed.');
+            return;
+        }
+        await vscode.env.openExternal(vscode.Uri.parse(apiUrl));
+    });
+
     context.subscriptions.push(
         refreshCommand, 
         clearCommand, 
@@ -723,6 +733,7 @@ function registerCommands(context: vscode.ExtensionContext) {
         importSessionsCommand,
         addNotesCommand,
         addTagsCommand,
-        searchSessionsCommand
+        searchSessionsCommand,
+        openDashboardCommand
     );
 }

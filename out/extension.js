@@ -39,6 +39,7 @@ const LoggingService_1 = require("./services/LoggingService");
 const SessionHistoryService_1 = require("./services/SessionHistoryService");
 const ExportImportService_1 = require("./services/ExportImportService");
 const ProductivityCalculator_1 = require("./services/ProductivityCalculator");
+const ShareApiClient_1 = require("./services/ShareApiClient");
 let sessionTracker;
 let sidebarProvider;
 let aiSummaryService;
@@ -571,6 +572,14 @@ function registerCommands(context) {
             }, { component: 'Extension', operation: 'searchSessions' });
         }
     });
-    context.subscriptions.push(refreshCommand, clearCommand, refreshTeamCommand, optInCommand, optOutCommand, showLogsCommand, showTelemetryCommand, setLogLevelCommand, viewHistoryCommand, viewAnalyticsCommand, exportSessionsCommand, importSessionsCommand, addNotesCommand, addTagsCommand, searchSessionsCommand);
+    const openDashboardCommand = vscode.commands.registerCommand('sessionRecap.openDashboard', async () => {
+        const apiUrl = ShareApiClient_1.ShareApiClient.getApiBaseUrl();
+        if (!apiUrl) {
+            vscode.window.showWarningMessage('Set sessionRecap.shareApiUrl in settings to open the public feed.');
+            return;
+        }
+        await vscode.env.openExternal(vscode.Uri.parse(apiUrl));
+    });
+    context.subscriptions.push(refreshCommand, clearCommand, refreshTeamCommand, optInCommand, optOutCommand, showLogsCommand, showTelemetryCommand, setLogLevelCommand, viewHistoryCommand, viewAnalyticsCommand, exportSessionsCommand, importSessionsCommand, addNotesCommand, addTagsCommand, searchSessionsCommand, openDashboardCommand);
 }
 //# sourceMappingURL=extension.js.map

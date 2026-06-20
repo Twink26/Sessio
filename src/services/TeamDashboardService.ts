@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { ITeamDataAggregator } from '../interfaces/ITeamDataAggregator';
 import { ITeamDashboardProvider } from '../interfaces/ITeamDashboardProvider';
 import { SessionData } from '../models/SessionData';
+import { ShareApiClient } from './ShareApiClient';
 
 /**
  * Service that coordinates team dashboard functionality
@@ -72,9 +73,21 @@ export class TeamDashboardService {
       
       if (teamData) {
         this.teamDashboardProvider.updateContent(teamData);
-        this.outputChannel.appendLine(`Team dashboard updated with ${teamData.members.length} members`);
+        this.outputChannel.appendLine(
+          `Public feed updated with ${teamData.members.length} shared session(s)`
+        );
       } else {
-        this.teamDashboardProvider.showPermissionDenied();
+        const apiUrl = ShareApiClient.getApiBaseUrl();
+        if (!apiUrl) {
+          vscode.window.showWarningMessage(
+            'Configure sessionRecap.shareApiUrl to load the public session feed.'
+          );
+        }
+        this.teamDashboardProvider.updateContent({
+          teamId: 'public-feed',
+          members: [],
+          aggregatedAt: new Date()
+        });
       }
     } catch (error) {
       this.outputChannel.appendLine(`Failed to refresh team dashboard: ${error}`);
@@ -126,16 +139,17 @@ export class TeamDashboardService {
    */
   async handleAuthentication(): Promise<void> {
     try {
-      // In a real implementation, this would trigger actual authentication flow
-      // For now, just show a message
-      const result = await vscode.window.showInformationMessage(
-        'Team dashboard authentication is not yet implemented. This would typically integrate with your organization\'s authentication system.',
-        'OK'
-      );
-      
-      this.outputChannel.appendLine('Authentication requested (not implemented)');
+      const apiUrl = ShareApiClient.getApiBaseUrl();
+      if (apiUrl) {
+        await vscode.env.openExternal(vscode.Uri.parse(apiUrl));
+        this.outputChannel.appendLine(`Opened public dashboard: ${apiUrl}`);
+      } else {
+        vscode.window.showWarningMessage(
+          'Set sessionRecap.shareApiUrl in settings to open the public session feed.'
+        );
+      }
     } catch (error) {
-      this.outputChannel.appendLine(`Authentication error: ${error}`);
+      this.outputChannel.appendLine(`Failed to open dashboard: ${error}`);
     }
   }
 
