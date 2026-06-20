@@ -480,6 +480,69 @@ kbd {
   font-size: 0.8rem;
 }
 
+/* ---------- How to get started — journey timeline ---------- */
+
+.get-started {
+  padding: 5.5rem 1.5rem;
+  border-top: 1px solid var(--border-soft);
+}
+
+.get-started-inner {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.get-started .section-title {
+  margin: 0 0 3.5rem;
+}
+
+.journey-steps {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-left: 1.25rem;
+}
+
+.journey-steps::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.35rem;
+  bottom: 0.35rem;
+  width: 2px;
+  background: var(--border-soft);
+}
+
+.journey-step {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0 1.5rem;
+  align-items: start;
+  padding-bottom: 2.5rem;
+}
+
+.journey-step:last-child {
+  padding-bottom: 0;
+}
+
+.journey-step .method-num {
+  margin-bottom: 0;
+}
+
+.journey-step h3 {
+  font-family: var(--font-display);
+  margin: 0 0 0.65rem;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.journey-step p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.65;
+}
+
 /* ---------- FAQ ---------- */
 
 .faq {
@@ -834,6 +897,40 @@ kbd {
   color: var(--accent-bright);
 }
 
+/* ---------- Private dashboard elements ---------- */
+
+.private-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+  color: var(--green);
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+
+.private-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 0 3px var(--green-soft);
+}
+
+#ownerName {
+  color: var(--accent-bright);
+}
+
+.empty code {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 0.15rem 0.45rem;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--accent-bright);
+}
+
 @media (max-width: 750px) {
   .product-preview-inner { grid-template-columns: 1fr; }
   .preview-side { flex-direction: row; overflow-x: auto; padding-top: 0; }
@@ -847,4 +944,8 @@ kbd {
   .feed-hero { padding: 2.2rem 1.25rem 2.5rem; }
   .nav-links { display: none; }
   .preview-frame { transform: none; }
+  .private-badge span:not(.private-dot) { display: none; }
+  .get-started { padding: 3.5rem 1.25rem; }
+  .get-started .section-title { margin-bottom: 2.5rem; }
+  .journey-step { gap: 0 1rem; padding-bottom: 2rem; }
 }

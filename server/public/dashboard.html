@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Live feed — Session Recap</title>
+  <title>My session feed — Session Recap</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500;1,9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -22,17 +22,19 @@
         <a href="/">Home</a>
         <a href="https://github.com/Twink26/Sessio" target="_blank" rel="noopener">GitHub</a>
       </div>
-      <a class="btn primary btn-sm" href="https://github.com/Twink26/Sessio" target="_blank" rel="noopener">View on GitHub</a>
+      <span class="private-badge">
+        <span class="private-dot"></span> Private view
+      </span>
     </div>
   </nav>
 
   <header class="feed-hero">
     <div class="feed-hero-inner">
-      <p class="eyebrow">Live feed</p>
-      <h1>Real coding sessions, shared on purpose</h1>
+      <p class="eyebrow">Your feed · unlocked with your key</p>
+      <h1>Welcome back<span id="ownerName">.</span></h1>
       <p class="subtitle">
-        Every card below is a genuine session summary submitted by a developer who opted in
-        through the extension. No fake teammates, no demo data.
+        This is your private log of real coding sessions — not a public page.
+        Only someone with your key sees this view.
       </p>
 
       <div class="hero-actions">
@@ -43,18 +45,27 @@
 
       <div class="status-row">
         <span class="status-dot" id="statusDot"></span>
-        <p class="status" id="statusLine">Loading shared sessions…</p>
+        <p class="status" id="statusLine">Loading your sessions…</p>
       </div>
     </div>
   </header>
 
   <main class="container">
+    <section id="lockedState" class="empty hidden">
+      <div class="empty-icon">⊘</div>
+      <h2>This page is private</h2>
+      <p>
+        Add your key to the URL to view it — for example
+        <code>?key=your-secret-key</code>. Without it, no session data is shown.
+      </p>
+    </section>
+
     <section id="emptyState" class="empty hidden">
       <div class="empty-icon">◇</div>
-      <h2>No shared sessions yet</h2>
+      <h2>No sessions yet</h2>
       <p>
-        Install the extension, enable sharing in settings, opt in, and finish a coding session.
-        Your summary will appear here — for real.
+        Opt in to sharing from the extension and finish a coding session.
+        Your first recap will show up right here.
       </p>
     </section>
 
@@ -64,8 +75,8 @@
   <footer class="footer">
     <div class="footer-inner">
       <p class="footer-credit">
-        Data is submitted only when a user explicitly opts in via the Session Recap extension.
-        Summaries are filtered by each user's privacy settings before upload.
+        This page is protected by a private key set on the server. No one without
+        that key can view your session data.
       </p>
     </div>
   </footer>

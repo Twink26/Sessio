@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs/promises');
@@ -9,11 +11,33 @@ const MAX_SESSIONS = 500;
 const DATA_DIR = path.join(__dirname, 'data');
 const DATA_FILE = path.join(DATA_DIR, 'sessions.json');
 
+// NEW: Dashboard key from environment (optional — unprotected if unset)
+const DASHBOARD_KEY = process.env.DASHBOARD_KEY;
+
 const app = express();
+
+// NEW: Warn at startup when dashboard is unprotected
+if (!DASHBOARD_KEY) {
+  console.warn('WARNING: DASHBOARD_KEY not set — dashboard is unprotected');
+}
+
+// NEW: Middleware — require matching key on protected routes when DASHBOARD_KEY is set
+function dashboardKeyMiddleware(req, res, next) {
+  if (!DASHBOARD_KEY) {
+    console.warn('WARNING: DASHBOARD_KEY not set — dashboard is unprotected');
+    return next();
+  }
+
+  const providedKey = req.query.key || req.headers['x-dashboard-key'];
+  if (providedKey !== DASHBOARD_KEY) {
+    return res.status(401).json({ error: 'Invalid or missing dashboard key' });
+  }
+
+  next();
+}
 
 app.use(cors());
 app.use(express.json({ limit: '256kb' }));
-app.use(express.static(path.join(__dirname, 'public')));
 
 async function ensureDataFile() {
   await fs.mkdir(DATA_DIR, { recursive: true });
@@ -58,11 +82,13 @@ function validateSubmission(body) {
   return null;
 }
 
+// Public — no dashboard key required
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, service: 'session-recap-api' });
 });
 
-app.get('/api/sessions', async (_req, res) => {
+// NEW: Protected — requires dashboard key when DASHBOARD_KEY is set
+app.get('/api/sessions', dashboardKeyMiddleware, async (_req, res) => {
   try {
     const sessions = await loadSessions();
     sessions.sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
@@ -77,6 +103,7 @@ app.get('/api/sessions', async (_req, res) => {
   }
 });
 
+// Public — extension submits sessions without a dashboard key
 app.post('/api/sessions', async (req, res) => {
   const validationError = validateSubmission(req.body);
   if (validationError) {
@@ -112,11 +139,20 @@ app.post('/api/sessions', async (req, res) => {
   }
 });
 
+// NEW: Protected dashboard page — registered before express.static so the key is enforced
+app.get('/dashboard.html', dashboardKeyMiddleware, (_req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+});
+
+// Public static assets (landing page, CSS, JS) — dashboard.html is handled above
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Public landing page fallback
 app.get('*', (_req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.listen(PORT, () => {
   console.log(`Session Recap API running at http://localhost:${PORT}`);
-  console.log(`Dashboard: http://localhost:${PORT}`);
+  console.log(`Dashboard: http://localhost:${PORT}/dashboard.html`);
 });

@@ -1,6 +1,10 @@
 # Node.js dependencies
 node_modules/
 
+# Local secrets (never commit real keys)
+.env
+server/.env
+
 # Local workspace settings (may contain API keys)
 .vscode/settings.json
 .eslintrc.json

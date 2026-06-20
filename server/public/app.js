@@ -2,7 +2,20 @@ const statusLine = document.getElementById('statusLine');
 const statusDot = document.getElementById('statusDot');
 const sessionGrid = document.getElementById('sessionGrid');
 const emptyState = document.getElementById('emptyState');
+const lockedState = document.getElementById('lockedState');
 const refreshBtn = document.getElementById('refreshBtn');
+const ownerName = document.getElementById('ownerName');
+
+// Read the dashboard key from the URL once, on page load.
+// Accepts ?key=xxxx and keeps it for every subsequent fetch on this page.
+const urlParams = new URLSearchParams(window.location.search);
+const dashboardKey = urlParams.get('key');
+
+function apiUrl(path) {
+  if (!dashboardKey) return path;
+  const separator = path.includes('?') ? '&' : '?';
+  return `${path}${separator}key=${encodeURIComponent(dashboardKey)}`;
+}
 
 function formatRelativeTime(isoString) {
   const date = new Date(isoString);
@@ -34,7 +47,7 @@ function getInitials(name) {
 function scoreColor(score) {
   if (score >= 80) return 'var(--green)';
   if (score >= 60) return 'var(--accent)';
-  if (score >= 40) return 'var(--orange)';
+  if (score >= 40) return 'var(--gold)';
   return 'var(--red)';
 }
 
@@ -90,12 +103,27 @@ function renderSession(entry) {
   `;
 }
 
+function showLocked() {
+  sessionGrid.innerHTML = '';
+  if (emptyState) emptyState.classList.add('hidden');
+  if (lockedState) lockedState.classList.remove('hidden');
+  statusLine.textContent = 'Locked — add your key to the URL to view this feed.';
+  if (statusDot) statusDot.style.background = 'var(--red)';
+}
+
 async function loadSessions() {
-  statusLine.textContent = 'Loading shared sessions…';
-  if (statusDot) statusDot.style.background = 'var(--orange)';
+  if (lockedState) lockedState.classList.add('hidden');
+  statusLine.textContent = 'Loading your sessions…';
+  if (statusDot) statusDot.style.background = 'var(--gold)';
 
   try {
-    const response = await fetch('/api/sessions');
+    const response = await fetch(apiUrl('/api/sessions'));
+
+    if (response.status === 401) {
+      showLocked();
+      return;
+    }
+
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
@@ -105,27 +133,34 @@ async function loadSessions() {
 
     if (sessions.length === 0) {
       sessionGrid.innerHTML = '';
-      emptyState.classList.remove('hidden');
-      statusLine.textContent = 'Feed is live — waiting for the first opt-in submission.';
+      if (emptyState) emptyState.classList.remove('hidden');
+      statusLine.textContent = 'Feed is live — waiting for your first opt-in submission.';
       if (statusDot) statusDot.style.background = 'var(--green)';
       return;
     }
 
-    emptyState.classList.add('hidden');
+    // Personalize the greeting using the most recent contributor's name
+    if (ownerName && sessions[0]?.displayName) {
+      ownerName.textContent = `, ${sessions[0].displayName}.`;
+    }
+
+    if (emptyState) emptyState.classList.add('hidden');
     sessionGrid.innerHTML = sessions.map(renderSession).join('');
-    statusLine.textContent = `${sessions.length} real shared session${sessions.length === 1 ? '' : 's'} · updated ${formatRelativeTime(data.aggregatedAt)}`;
+    statusLine.textContent = `${sessions.length} session${sessions.length === 1 ? '' : 's'} · updated ${formatRelativeTime(data.aggregatedAt)}`;
     if (statusDot) statusDot.style.background = 'var(--green)';
   } catch (error) {
     sessionGrid.innerHTML = '';
-    emptyState.classList.remove('hidden');
-    emptyState.querySelector('h2').textContent = 'Could not load sessions';
-    emptyState.querySelector('p').textContent =
-      'The API may be starting up. Try refreshing in a moment.';
+    if (emptyState) {
+      emptyState.classList.remove('hidden');
+      emptyState.querySelector('h2').textContent = 'Could not load sessions';
+      emptyState.querySelector('p').textContent =
+        'The API may be starting up. Try refreshing in a moment.';
+    }
     statusLine.textContent = `Error: ${error.message}`;
     if (statusDot) statusDot.style.background = 'var(--red)';
   }
 }
 
-refreshBtn.addEventListener('click', loadSessions);
+if (refreshBtn) refreshBtn.addEventListener('click', loadSessions);
 loadSessions();
 setInterval(loadSessions, 30000);
