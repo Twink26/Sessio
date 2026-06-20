@@ -3,46 +3,181 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Session Recap — Live Shared Sessions</title>
+  <title>Session Recap — Pick up exactly where you left off</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500;1,9..144,600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <header class="hero">
-    <div class="hero-inner">
-      <p class="eyebrow">Session Recap extension</p>
-      <h1>Real coding sessions, shared on purpose</h1>
-      <p class="subtitle">
-        This page shows <strong>actual</strong> session summaries submitted by developers who opted in.
-        No fake teammates. No random demo data. Just real work, when people choose to share it.
-      </p>
-      <div class="hero-actions">
-        <a class="btn primary" href="https://marketplace.visualstudio.com/" target="_blank" rel="noopener">Get the VS Code extension</a>
-        <button class="btn secondary" id="refreshBtn" type="button">Refresh feed</button>
+  <div class="bg-grid"></div>
+
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="/" class="brand">
+        <span class="brand-mark">◆</span>
+        <span class="brand-name">Session Recap</span>
+      </a>
+      <div class="nav-links">
+        <a href="#method">How it works</a>
+        <a href="/dashboard.html">Live feed</a>
+        <a href="https://github.com/Twink26/Sessio" target="_blank" rel="noopener">GitHub</a>
       </div>
-      <p class="status" id="statusLine">Loading shared sessions…</p>
+      <a class="btn primary btn-sm" href="https://github.com/Twink26/Sessio" target="_blank" rel="noopener">View on GitHub</a>
+    </div>
+  </nav>
+
+  <!-- ============ HERO ============ -->
+  <header class="landing-hero">
+    <div class="landing-hero-inner">
+      <p class="eyebrow">VS Code extension · Session Recap, 2026</p>
+      <h1>Pick up exactly<br>where you <em>left off.</em></h1>
+      <p class="subtitle">
+        Session Recap watches your files, your commits, and your terminal errors in the
+        background — then writes a short AI summary, so the first five minutes back at your
+        desk aren't spent re-reading your own code.
+      </p>
+
+      <div class="hero-actions">
+        <a class="btn primary" href="https://github.com/Twink26/Sessio" target="_blank" rel="noopener">
+          View on GitHub
+        </a>
+        <a class="btn secondary" href="#demo">
+          See it in action ↓
+        </a>
+      </div>
+
+      <p class="marketplace-note">Not yet on the VS Code Marketplace — installs from source in under a minute.</p>
     </div>
   </header>
 
-  <main class="container">
-    <section id="emptyState" class="empty hidden">
-      <div class="empty-icon">📭</div>
-      <h2>No shared sessions yet</h2>
-      <p>
-        Install the extension, enable sharing in settings, opt in, and finish a coding session.
-        Your summary will appear here — for real.
-      </p>
-    </section>
+  <!-- ============ PRODUCT PREVIEW — asymmetric ============ -->
+  <section class="product-preview" id="demo">
+    <div class="product-preview-inner">
 
-    <section id="sessionGrid" class="grid"></section>
-  </main>
+      <div class="preview-frame">
+        <div class="preview-frame-bar">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+          <span class="preview-frame-title">vendorpulse — Session Recap</span>
+        </div>
+        <img src="/screenshot-sidebar.png" alt="Session Recap sidebar panel showing a real session summary, edited files, and git commits" class="preview-img">
+      </div>
+
+      <div class="preview-side">
+        <div class="preview-stat">
+          <span class="preview-stat-label">Tracks</span>
+          <span class="preview-stat-value">Files · commits · terminal errors</span>
+        </div>
+        <div class="preview-stat">
+          <span class="preview-stat-label">Summary</span>
+          <span class="preview-stat-value">AI-written, on by default</span>
+        </div>
+        <div class="preview-stat">
+          <span class="preview-stat-label">Sharing</span>
+          <span class="preview-stat-value">Opt-in, off by default</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ METHOD: 3 STEPS ============ -->
+  <section class="method" id="method">
+    <div class="method-inner">
+      <p class="section-eyebrow">§ 01 — The loop</p>
+      <h2 class="section-title">Three steps, running quietly in the background.</h2>
+
+      <div class="method-grid">
+        <div class="method-card">
+          <span class="method-num">01</span>
+          <h3>Track</h3>
+          <p>Every file edit, git commit, and terminal error during your session is captured automatically — no manual logging, no setup per-project.</p>
+        </div>
+        <div class="method-card">
+          <span class="method-num">02</span>
+          <h3>Summarize</h3>
+          <p>When you step away, an AI summary turns raw activity into a sentence you'd actually write yourself: what you touched, what broke, what shipped.</p>
+        </div>
+        <div class="method-card">
+          <span class="method-num">03</span>
+          <h3>Recap</h3>
+          <p>Next time you open the project, the sidebar shows exactly that — so the first five minutes go to coding, not remembering.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ LIVE FEED TEASER ============ -->
+  <section class="feed-teaser">
+    <div class="feed-teaser-inner">
+      <p class="section-eyebrow">§ 02 — Opt-in, not surveillance</p>
+      <h2 class="section-title">A public feed, only when people choose to share it.</h2>
+      <p class="feed-teaser-copy">
+        Sharing is off by default. When a developer opts in, their session summary appears on a
+        live public feed — real activity, no fake teammates, no demo data standing in for users.
+      </p>
+      <a class="btn secondary" href="/dashboard.html">Open the live feed →</a>
+    </div>
+  </section>
+
+  <!-- ============ INSTALL ============ -->
+  <section class="install">
+    <div class="install-inner">
+      <p class="section-eyebrow">§ 03 — Get started</p>
+      <h2 class="section-title">Install it now</h2>
+      <p class="install-lead">Three commands. No Marketplace listing required yet.</p>
+      <pre class="code-block"><code>git clone https://github.com/Twink26/Sessio.git
+cd Sessio
+npm install && npm run compile</code></pre>
+      <p class="install-note">Then open the folder in VS Code and press <kbd>F5</kbd> to run it in the Extension Development Host.</p>
+    </div>
+  </section>
+
+  <!-- ============ FAQ ============ -->
+  <section class="faq">
+    <div class="faq-inner">
+      <p class="section-eyebrow">§ 04 — Questions</p>
+      <h2 class="section-title">Frequently asked, candidly answered.</h2>
+
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary>Does anything leave my machine by default?</summary>
+          <p>No. Session tracking and the AI summary run locally. Sharing to the public feed is a separate, explicit opt-in setting — off unless you turn it on.</p>
+        </details>
+        <details class="faq-item">
+          <summary>What does the AI summary actually use?</summary>
+          <p>It calls OpenAI's API when you provide a key. Without a key, it falls back to a rule-based summary generated from your real file and commit activity — never a placeholder.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Why isn't this on the VS Code Marketplace yet?</summary>
+          <p>It's early. The extension works end-to-end today; Marketplace publishing is a planned next step, not a blocker to using it from source.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Can I see the code before installing?</summary>
+          <p>Yes — the full source, including the sharing API and dashboard, is public on GitHub.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FINAL CTA ============ -->
+  <section class="final-cta">
+    <div class="final-cta-inner">
+      <h2>Stop re-reading <em>your own code.</em></h2>
+      <p>Free, open source, installs from source in under a minute.</p>
+      <div class="hero-actions" style="justify-content: center;">
+        <a class="btn primary" href="https://github.com/Twink26/Sessio" target="_blank" rel="noopener">View on GitHub</a>
+        <a class="btn secondary" href="/dashboard.html">See the live feed</a>
+      </div>
+    </div>
+  </section>
 
   <footer class="footer">
-    <p>
-      Data is submitted only when a user explicitly opts in via the Session Recap extension.
-      Summaries are filtered by each user's privacy settings before upload.
-    </p>
+    <div class="footer-inner">
+      <p>Built by a developer who kept forgetting what she was doing yesterday.</p>
+      <p class="footer-credit"><a href="https://github.com/Twink26/Sessio" target="_blank" rel="noopener">Source on GitHub</a> · <a href="/dashboard.html">Live feed</a></p>
+    </div>
   </footer>
-
-  <script src="/app.js"></script>
 </body>
 </html>

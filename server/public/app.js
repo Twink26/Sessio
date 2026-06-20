@@ -1,4 +1,5 @@
 const statusLine = document.getElementById('statusLine');
+const statusDot = document.getElementById('statusDot');
 const sessionGrid = document.getElementById('sessionGrid');
 const emptyState = document.getElementById('emptyState');
 const refreshBtn = document.getElementById('refreshBtn');
@@ -23,6 +24,20 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+function getInitials(name) {
+  if (!name) return '?';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function scoreColor(score) {
+  if (score >= 80) return 'var(--green)';
+  if (score >= 60) return 'var(--accent)';
+  if (score >= 40) return 'var(--orange)';
+  return 'var(--red)';
+}
+
 function renderSession(entry) {
   const session = entry.session || {};
   const files = session.editedFiles?.length ?? 0;
@@ -32,14 +47,23 @@ function renderSession(entry) {
     .map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`)
     .join('');
 
-  const score =
-    session.productivityScore !== undefined
-      ? `<div class="score">Productivity: <strong>${session.productivityScore}</strong>/100</div>`
+  const score = session.productivityScore;
+  const scoreHtml =
+    score !== undefined
+      ? `
+        <div class="score-bar-wrap">
+          <div class="score-track">
+            <div class="score-fill" style="width: ${score}%; background: ${scoreColor(score)};"></div>
+          </div>
+          <div class="score-label">Productivity <strong style="color: ${scoreColor(score)};">${score}</strong>/100</div>
+        </div>
+      `
       : '';
 
   return `
     <article class="card">
       <div class="card-header">
+        <div class="avatar">${escapeHtml(getInitials(entry.displayName))}</div>
         <div>
           <div class="author">${escapeHtml(entry.displayName)}</div>
           <div class="meta">Shared ${formatRelativeTime(entry.submittedAt)}</div>
@@ -61,13 +85,14 @@ function renderSession(entry) {
         </div>
       </div>
       ${tags ? `<div class="tags">${tags}</div>` : ''}
-      ${score}
+      ${scoreHtml}
     </article>
   `;
 }
 
 async function loadSessions() {
   statusLine.textContent = 'Loading shared sessions…';
+  if (statusDot) statusDot.style.background = 'var(--orange)';
 
   try {
     const response = await fetch('/api/sessions');
@@ -82,12 +107,14 @@ async function loadSessions() {
       sessionGrid.innerHTML = '';
       emptyState.classList.remove('hidden');
       statusLine.textContent = 'Feed is live — waiting for the first opt-in submission.';
+      if (statusDot) statusDot.style.background = 'var(--green)';
       return;
     }
 
     emptyState.classList.add('hidden');
     sessionGrid.innerHTML = sessions.map(renderSession).join('');
     statusLine.textContent = `${sessions.length} real shared session${sessions.length === 1 ? '' : 's'} · updated ${formatRelativeTime(data.aggregatedAt)}`;
+    if (statusDot) statusDot.style.background = 'var(--green)';
   } catch (error) {
     sessionGrid.innerHTML = '';
     emptyState.classList.remove('hidden');
@@ -95,6 +122,7 @@ async function loadSessions() {
     emptyState.querySelector('p').textContent =
       'The API may be starting up. Try refreshing in a moment.';
     statusLine.textContent = `Error: ${error.message}`;
+    if (statusDot) statusDot.style.background = 'var(--red)';
   }
 }
 
