@@ -11,18 +11,22 @@
     "Other"
   ],
   "activationEvents": [
-    "onStartupFinished"
+    "onStartupFinished",
+    "onView:sessionRecap",
+    "onView:teamDashboard"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "views": {
       "explorer": [
         {
+          "type": "webview",
           "id": "sessionRecap",
           "name": "Session Recap",
           "when": "true"
         },
         {
+          "type": "webview",
           "id": "teamDashboard",
           "name": "Team Dashboard",
           "when": "config.sessionRecap.enableTeamDashboard"

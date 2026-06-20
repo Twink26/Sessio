@@ -100,7 +100,10 @@ export class AISummaryService implements IAISummaryService {
     }
 
     const prompt = this.buildPrompt(sessionData);
-    
+    const controller = new AbortController();
+    const timeoutMs = 10_000;
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
     try {
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -122,7 +125,8 @@ export class AISummaryService implements IAISummaryService {
           ],
           max_tokens: this.config.maxTokens,
           temperature: this.config.temperature
-        })
+        }),
+        signal: controller.signal
       });
 
       if (!response.ok) {
@@ -130,16 +134,24 @@ export class AISummaryService implements IAISummaryService {
       }
 
       const data = await response.json();
-      
+
       if (!data.choices || data.choices.length === 0) {
         throw new Error('No response from OpenAI API');
       }
 
       return data.choices[0].message.content.trim();
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        const timeoutMessage = `OpenAI API request timed out after ${timeoutMs / 1000} seconds`;
+        this.outputChannel.appendLine(timeoutMessage);
+        throw new Error(`Failed to generate OpenAI summary: ${timeoutMessage}`);
+      }
+
       const errorMessage = `OpenAI API Error: ${error instanceof Error ? error.message : 'Unknown error'}`;
       this.outputChannel.appendLine(errorMessage);
       throw new Error(`Failed to generate OpenAI summary: ${errorMessage}`);
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 

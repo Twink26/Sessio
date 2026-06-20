@@ -1,2 +1,4 @@
 {
+  "sessionRecap.aiProvider": "openai",
+  "sessionRecap.openaiApiKey": "PASTE_KEY_HERE"
 }

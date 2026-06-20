@@ -1,5 +1,8 @@
 # Node.js dependencies
 node_modules/
+
+# Local workspace settings (may contain API keys)
+.vscode/settings.json
 .eslintrc.json
 FEATURES.md
 package-lock.json
