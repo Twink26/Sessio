@@ -4,6 +4,8 @@ node_modules/
 # Local secrets (never commit real keys)
 .env
 server/.env
+server/data/sessions.json
+server/node_modules
 
 # Local workspace settings (may contain API keys)
 .vscode/settings.json
