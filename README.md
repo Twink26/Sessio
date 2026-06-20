@@ -1,313 +1,408 @@
-# Session Recap Extension
+# Session Recap (Sessio)
 
-[![Version](https://img.shields.io/badge/version-0.0.1-blue.svg)](https://github.com/your-username/session-recap-extension)
 [![VS Code](https://img.shields.io/badge/VS%20Code-1.74.0+-brightgreen.svg)](https://code.visualstudio.com/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-A VS Code extension that provides an AI-generated summary of your previous coding session to help you resume work efficiently. Never lose track of what you were working on again!
+**Session Recap** is a VS Code extension that remembers what you were working on — so you can pick up exactly where you left off.
 
-##  Features
+It runs quietly in the background while you code, tracking file edits, git commits, and terminal errors. When you come back, the sidebar shows an AI-generated summary, your edited files, recent commits, and a productivity score.
 
-### Core Functionality
-- **Automatic Session Tracking**: Monitors file changes, Git commits, and terminal errors
-- **AI-Powered Summaries**: Generates intelligent summaries of your coding sessions
-- **Quick File Navigation**: Click on files from your previous session to open them instantly
-- **Git Activity Overview**: See recent commits with messages and timestamps
-- **Error Tracking**: Keep track of terminal errors from your last session
+> **Not on the VS Code Marketplace yet.** Install from source — it takes about five minutes, and this guide walks you through every step.
 
-### Team Collaboration
-- **Team Dashboard**: View session summaries across your team (optional)
-- **Privacy Controls**: Granular control over what data is shared
-- **Opt-in Sharing**: Team features are completely optional and require explicit consent
+---
 
-### Performance & Reliability
-- **Optimized Performance**: Minimal impact on VS Code startup and runtime
-- **Error Handling**: Robust error handling with detailed logging
-- **Configurable**: Extensive configuration options to customize behavior
+## Table of contents
 
+- [What you'll need](#what-youll-need)
+- [Install the extension (step by step)](#install-the-extension-step-by-step)
+- [Day-to-day usage](#day-to-day-usage)
+- [Optional: AI summaries with OpenAI](#optional-ai-summaries-with-openai)
+- [Optional: share sessions to a dashboard](#optional-share-sessions-to-a-dashboard)
+- [Commands](#commands)
+- [Settings](#settings)
+- [Troubleshooting](#troubleshooting)
+- [Privacy](#privacy)
+- [Development](#development)
 
+---
 
-### Session Recap Panel
-The main sidebar panel showing your previous session summary:
+## What you'll need
 
-```
-┌─ Session Recap ──────────────────┐
-│ Session Overview              │
-│ Session ID: abc123               │
-│ Started: 2024-01-15 09:30 AM     │
-│ Duration: 2h 45m                 │
-│ Status: ✅ Completed             │
-│                                  │
-│  Files Edited (3)             │
-│ ▶ src/components/Header.tsx      │
-│ ▶ src/styles/main.css            │
-│ ▶ README.md                      │
-│                                  │
-│  Git Commits (2)              │
-│ ▶ feat: add responsive header    │
-│ ▶ fix: css styling issues        │
-│                                  │
-│  Terminal Errors (1)           │
-│ ▶ TypeError: Cannot read...      │
-│                                  │
-│  AI Summary                    │
-│ You worked on improving the      │
-│ header component, adding         │
-│ responsive design and fixing     │
-│ CSS styling issues.              │
-└──────────────────────────────────┘
-```
+Before you start, install these on your computer:
 
-##  Installation
+| Tool | Why | How to check |
+|------|-----|--------------|
+| **[VS Code](https://code.visualstudio.com/)** | The editor the extension runs in | Open VS Code |
+| **[Node.js 18+](https://nodejs.org/)** | Builds the extension | Run `node --version` in a terminal |
+| **[Git](https://git-scm.com/)** | Clone the repository | Run `git --version` in a terminal |
 
-### From VS Code Marketplace
-1. Open VS Code
-2. Go to Extensions (Ctrl+Shift+X)
-3. Search for "Session Recap"
-4. Click Install
+You do **not** need an OpenAI API key to get started — the extension works without one using a rule-based summary built from your real activity.
 
-### From VSIX Package
-1. Download the `.vsix` file from releases
-2. Open VS Code
-3. Run `Extensions: Install from VSIX...` from Command Palette
-4. Select the downloaded file
+---
 
-### Development Installation
+## Install the extension (step by step)
+
+These steps assume you've never installed a VS Code extension from source before.
+
+### Step 1 — Clone the repository
+
+Open a terminal (PowerShell, Terminal, or Command Prompt) and run:
+
 ```bash
-git clone https://github.com/your-username/session-recap-extension.git
-cd session-recap-extension
+git clone https://github.com/Twink26/Sessio.git
+cd Sessio
+```
+
+This downloads the project into a folder called `Sessio`.
+
+### Step 2 — Install dependencies and build
+
+Still in the `Sessio` folder, run:
+
+```bash
 npm install
 npm run compile
-# Press F5 to launch Extension Development Host
 ```
 
-##  Configuration
+- `npm install` downloads the libraries the extension needs (this may take a minute).
+- `npm run compile` converts the TypeScript source code into JavaScript VS Code can run.
 
-The extension provides extensive configuration options through VS Code settings:
+Wait until both commands finish without errors before continuing.
 
-### Basic Settings
+### Step 3 — Open the project in VS Code
+
+1. Open **VS Code**
+2. Go to **File → Open Folder…**
+3. Select the `Sessio` folder you cloned
+4. Click **Select Folder**
+
+You should see the project files in the Explorer panel on the left.
+
+### Step 4 — Launch the extension (Extension Development Host)
+
+The extension isn't installed in your normal VS Code yet — you run it in a special debug window:
+
+1. Press **F5** (or go to **Run → Start Debugging**)
+2. A **second** VS Code window opens — this is the **Extension Development Host**
+3. Look for a notification: **"Session Recap extension is now active."**
+
+> **Tip:** Keep the first window open — that's your development copy. Do your actual coding in the **second** window (the Extension Development Host).
+
+### Step 5 — Open a project and find the sidebar
+
+In the **Extension Development Host** window (the second one):
+
+1. Open any project you want to work on (**File → Open Folder…**)
+2. In the left **Explorer** panel, scroll down
+3. Find the section labeled **Session Recap** and click to expand it
+
+The panel will be empty the first time — that's normal. No session has been tracked yet.
+
+### Step 6 — Verify it's working
+
+1. Edit and save a file in your project
+2. Make a git commit if you can (optional but helpful)
+3. **Close or reload** the Extension Development Host window (**Developer: Reload Window** from the Command Palette, or just close VS Code)
+4. Press **F5** again from the original `Sessio` window to reopen the Extension Development Host
+5. Open the same project folder and expand **Session Recap** again
+
+You should now see your previous session: summary, edited files, commits, and a productivity score.
+
+**You're done with installation.** Everything below is about using it day to day.
+
+---
+
+## Day-to-day usage
+
+### How tracking works
+
+Once the extension is active, you don't need to start or stop anything manually:
+
+- **File edits** — tracked when you save
+- **Git commits** — tracked automatically
+- **Terminal errors** — captured from the integrated terminal
+- **Session end** — saved when you close or reload the VS Code window
+
+All of this stays **on your machine** unless you explicitly opt in to sharing (see below).
+
+### Reading your recap
+
+Open the **Session Recap** panel in the Explorer sidebar. You'll see:
+
+| Section | What it shows |
+|---------|---------------|
+| **AI Summary** | A short paragraph describing what you worked on |
+| **Edited Files** | Files you changed — click one to open it |
+| **Git Commits** | Recent commits with messages |
+| **Terminal Errors** | Errors from your last session |
+| **Productivity Score** | A simple score based on your activity |
+
+### When sessions update
+
+- A new session starts when you open VS Code with the extension running
+- The previous session is saved and summarized when you **close** or **reload** the window
+- Use **Session Recap: Refresh** (see [Commands](#commands)) to reload the panel without restarting
+
+### Keyboard shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+Shift+R` (Mac: `Cmd+Shift+R`) | Refresh the Session Recap panel |
+| `Ctrl+Shift+H` (Mac: `Cmd+Shift+H`) | View session history |
+| `Ctrl+Shift+A` (Mac: `Cmd+Shift+A`) | View analytics |
+| `Ctrl+Shift+F` (Mac: `Cmd+Shift+F`) | Search sessions |
+
+Shortcuts only work when the Session Recap view is focused (for refresh) or globally (for history/analytics/search).
+
+### Typical workflow
+
+```
+Morning:  Open VS Code (F5 → Extension Development Host) → read yesterday's recap
+During:   Code normally — tracking is automatic
+Evening:  Close VS Code → session is saved and summarized
+Next day: Open again → recap tells you exactly where you left off
+```
+
+---
+
+## Optional: AI summaries with OpenAI
+
+By default, summaries are generated **locally** from your activity (no API key needed). For richer, natural-language summaries, connect OpenAI:
+
+### Step 1 — Get an API key
+
+1. Go to [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+2. Create an API key and copy it
+
+### Step 2 — Add it to VS Code settings
+
+1. Open **Settings** (`Ctrl+,` / `Cmd+,`)
+2. Search for `sessionRecap`
+3. Set these values:
+
+| Setting | Value |
+|---------|-------|
+| `sessionRecap.aiProvider` | `openai` |
+| `sessionRecap.openaiApiKey` | Your API key |
+| `sessionRecap.enableAISummary` | `true` (default) |
+
+Or add to your `settings.json`:
+
 ```json
 {
-  "sessionRecap.enabled": true,
-  "sessionRecap.maxCommitsToShow": 10,
+  "sessionRecap.aiProvider": "openai",
+  "sessionRecap.openaiApiKey": "sk-your-key-here",
   "sessionRecap.enableAISummary": true
 }
 ```
 
-### AI Configuration
-```json
-{
-  "sessionRecap.aiProvider": "openai",
-  "sessionRecap.openaiApiKey": "your-api-key-here",
-  "sessionRecap.aiMaxTokens": 150,
-  "sessionRecap.aiTemperature": 0.7
-}
-```
+### Step 3 — Reload and test
 
-### Team Features
-```json
-{
-  "sessionRecap.enableTeamDashboard": false,
-  "sessionRecap.privacySettings.shareWithTeam": false,
-  "sessionRecap.privacySettings.excludeFilePatterns": [
-    "*.log",
-    "node_modules/**",
-    ".git/**"
-  ]
-}
-```
+Reload the window (**Developer: Reload Window**), do some coding, then close and reopen. Your next recap should use the AI summary.
 
-### Privacy & Filtering
-```json
-{
-  "sessionRecap.privacySettings.excludeCommitPatterns": [
-    "WIP:",
-    "temp:",
-    "debug:"
-  ]
-}
-```
-
-##  Usage
-
-### Getting Started
-1. Install the extension
-2. Restart VS Code
-3. The Session Recap panel will appear in the sidebar
-4. Start coding - your activity is automatically tracked
-5. When you restart VS Code, you'll see a summary of your previous session
-
-### AI Summary Setup
-1. Choose your AI provider in settings:
-   - `openai`: Use OpenAI GPT models (requires API key)
-   - `local`: Use local AI models (if available)
-   - `disabled`: No AI summaries, show raw data only
-
-2. For OpenAI:
-   - Get an API key from [OpenAI](https://platform.openai.com/api-keys)
-   - Add it to `sessionRecap.openaiApiKey` setting
-   - Adjust `aiMaxTokens` and `aiTemperature` as needed
-
-### Team Dashboard (Optional)
-1. Enable team features: `sessionRecap.enableTeamDashboard: true`
-2. Opt-in to sharing: Use the "Opt In to Team Sharing" command
-3. Configure privacy settings to control what data is shared
-4. View team dashboard in the sidebar
-
-##  Commands
-
-Access these commands through the Command Palette (Ctrl+Shift+P):
-
-| Command | Description |
-|---------|-------------|
-| `Session Recap: Refresh` | Manually refresh the session recap |
-| `Session Recap: Clear Session Data` | Clear current session data |
-| `Session Recap: Show Logs` | Open the extension's log output |
-| `Session Recap: Set Log Level` | Change logging verbosity |
-| `Session Recap: Refresh Team Dashboard` | Update team dashboard data |
-| `Session Recap: Opt In to Team Sharing` | Enable sharing with team |
-| `Session Recap: Opt Out of Team Sharing` | Disable sharing with team |
-| `Session Recap: Show Telemetry Summary` | View extension performance data |
-
-##  Development
-
-### Prerequisites
-- Node.js 16.x or higher
-- VS Code 1.74.0 or higher
-- TypeScript 4.9.4 or higher
-
-### Setup
-```bash
-# Clone the repository
-git clone https://github.com/your-username/session-recap-extension.git
-cd session-recap-extension
-
-# Install dependencies
-npm install
-
-# Compile TypeScript
-npm run compile
-
-# Run tests
-npm run test
-
-# Watch for changes during development
-npm run watch
-```
-
-### Testing
-```bash
-# Run unit tests
-npm run test:unit
-
-# Run integration tests
-npm run test:integration
-
-# Run all tests
-npm run test:all
-
-# Run tests with coverage
-npm run test:coverage
-
-# Watch mode for development
-npm run test:watch
-```
-
-### Project Structure
-```
-session-recap-extension/
-├── src/
-│   ├── extension.ts              # Main extension entry point
-│   ├── models/                   # Data models and interfaces
-│   ├── services/                 # Core business logic
-│   ├── providers/                # VS Code UI providers
-│   ├── interfaces/               # TypeScript interfaces
-│   ├── utils/                    # Utility functions
-│   └── __tests__/               # Test files
-├── .kiro/specs/                 # Feature specifications
-├── package.json                 # Extension manifest
-└── README.md                    # This file
-```
-
-##  Privacy & Security
-
-### Data Collection
-The extension only collects data locally within your VS Code workspace:
-- File paths and modification timestamps
-- Git commit messages and metadata
-- Terminal error messages
-- Session timing information
-
-### Team Sharing
-- **Opt-in Only**: Team features require explicit user consent
-- **Configurable**: Control exactly what data is shared
-- **Local Storage**: All data is stored locally by default
-- **No External Services**: No data is sent to external services without your configuration
-
-### AI Processing
-- **Your Choice**: AI features are optional and configurable
-- **API Keys**: You provide your own API keys for external AI services
-- **Local Processing**: When possible, processing happens locally
-- **No Data Retention**: AI services process data transiently
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
-
-### Quick Start for Contributors
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Make your changes and add tests
-4. Run the test suite: `npm run test:all`
-5. Commit your changes: `git commit -m 'Add amazing feature'`
-6. Push to the branch: `git push origin feature/amazing-feature`
-7. Open a Pull Request
-
-### Development Guidelines
-- Follow TypeScript best practices
-- Write tests for new features
-- Update documentation as needed
-- Follow the existing code style
-- Ensure all tests pass before submitting
-
-##  License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-##  Issues & Support
-
-### Reporting Issues
-If you encounter any problems:
-1. Check the [existing issues](https://github.com/your-username/session-recap-extension/issues)
-2. Use the "Show Logs" command to gather diagnostic information
-3. Create a new issue with:
-   - VS Code version
-   - Extension version
-   - Steps to reproduce
-   - Log output (if relevant)
-
-
-##  Roadmap
-
-### Upcoming Features
-- [ ] Integration with more AI providers
-- [ ] Enhanced team collaboration features
-- [ ] Session analytics and insights
-- [ ] Export/import session data
-- [ ] Custom summary templates
-- [ ] Integration with project management tools
-
-### Version History
-- **0.0.1** - Initial release with core session tracking and AI summaries
-
-##  Acknowledgments
-
-- Thanks to the VS Code team for the excellent extension API
-- OpenAI for providing AI capabilities
-
+> **Without an OpenAI key:** set `sessionRecap.aiProvider` to `disabled` to use only the local rule-based summary, or leave the default — it falls back automatically when no key is set.
 
 ---
 
-**Made with ❤️ for developers who want to stay focused and productive.**
+## Optional: share sessions to a dashboard
 
-*If you find this extension helpful, please consider giving it a ⭐ on GitHub and leaving a review on the VS Code Marketplace!*
+Sharing is **off by default**. Nothing leaves your machine unless you turn it on.
+
+### Local dashboard (for testing)
+
+The repo includes a small web server that shows a live feed of opted-in sessions.
+
+**Terminal 1 — start the server** (from the repo root):
+
+```bash
+npm run server
+```
+
+Open http://localhost:3847 in your browser.
+
+**Optional — protect the dashboard with a key:**
+
+```bash
+cd server
+cp .env.example .env
+# Edit .env and set DASHBOARD_KEY=your-secret-key-here
+npm start
+```
+
+Then open the dashboard with `?key=your-secret-key-here` or send the `x-dashboard-key` header. See `server/README.md` for API details.
+
+**VS Code settings:**
+
+| Setting | Value |
+|---------|-------|
+| `sessionRecap.shareApiUrl` | `http://localhost:3847` (default) |
+| `sessionRecap.enableTeamDashboard` | `true` |
+
+**Opt in:**
+
+1. Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
+2. Run **Session Recap: Opt In to Team Sharing**
+3. Code as normal, then close VS Code — your session is posted on shutdown
+
+To stop sharing: run **Session Recap: Opt Out of Team Sharing**.
+
+Optional: set `sessionRecap.contributorDisplayName` to control the name shown on the feed (defaults to your git `user.name`).
+
+---
+
+## Commands
+
+Open the **Command Palette** (`Ctrl+Shift+P` / `Cmd+Shift+P`) and type `Session Recap`:
+
+| Command | What it does |
+|---------|--------------|
+| **Refresh Session Recap** | Reload the sidebar with the latest session data |
+| **Clear Session Data** | Reset the current session tracker |
+| **View Session History** | Browse past sessions |
+| **View Analytics** | See productivity analytics |
+| **Search Sessions** | Search through session history |
+| **Export Sessions** | Export session data to a file |
+| **Import Sessions** | Import session data from a file |
+| **Add Notes to Session** | Attach notes to the current session |
+| **Add Tags to Session** | Tag the current session |
+| **Opt In to Team Sharing** | Enable posting to the dashboard |
+| **Opt Out of Team Sharing** | Disable posting to the dashboard |
+| **Open Public Session Feed** | Open the dashboard URL in your browser |
+| **Refresh Team Dashboard** | Reload team dashboard data |
+| **Show Session Recap Logs** | Open the extension log for debugging |
+| **Show Telemetry Summary** | View performance telemetry |
+| **Set Log Level** | Change log verbosity |
+
+---
+
+## Settings
+
+All settings live under the `sessionRecap` prefix in VS Code Settings.
+
+### Essential settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `sessionRecap.enabled` | `true` | Turn tracking on or off |
+| `sessionRecap.enableAISummary` | `true` | Enable summary generation |
+| `sessionRecap.aiProvider` | `disabled` | `openai`, `local`, or `disabled` |
+| `sessionRecap.openaiApiKey` | `""` | Your OpenAI API key |
+| `sessionRecap.maxCommitsToShow` | `10` | Commits shown in the sidebar |
+
+### Sharing settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `sessionRecap.shareApiUrl` | `http://localhost:3847` | Dashboard API URL (empty = disabled) |
+| `sessionRecap.enableTeamDashboard` | `false` | Show the Team Dashboard sidebar view |
+| `sessionRecap.privacySettings.shareWithTeam` | `false` | Whether you're opted in to sharing |
+| `sessionRecap.contributorDisplayName` | `""` | Name on the public feed |
+
+### Privacy filters
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `sessionRecap.privacySettings.excludeFilePatterns` | `*.log`, `node_modules/**`, `.git/**` | Files to ignore |
+| `sessionRecap.privacySettings.excludeCommitPatterns` | `WIP:`, `temp:`, `debug:` | Commits to ignore |
+
+---
+
+## Troubleshooting
+
+### "Session Recap extension is now active" never appears
+
+- Make sure you pressed **F5** from the `Sessio` project folder (not from a random project)
+- Check the **Debug Console** in the first VS Code window for errors
+- Run `npm run compile` again and retry
+
+### The sidebar is empty after coding
+
+- Sessions save when you **close or reload** the window — editing alone isn't enough until the session ends
+- Run **Session Recap: Refresh** from the Command Palette
+- Confirm `sessionRecap.enabled` is `true` in settings
+
+### `npm install` or `npm run compile` fails
+
+- Confirm Node.js 18+: `node --version`
+- Delete `node_modules` and retry: `rm -rf node_modules && npm install` (Mac/Linux) or remove the folder manually on Windows
+- Make sure you're in the `Sessio` folder, not `Sessio/server`
+
+### AI summary isn't working
+
+- Check `sessionRecap.aiProvider` is set to `openai` and your API key is valid
+- Without a key, you'll get a local rule-based summary instead — that's expected
+- Run **Session Recap: Show Session Recap Logs** to see errors
+
+### Sharing to the dashboard doesn't work
+
+- Confirm the server is running: `npm run server` and visit http://localhost:3847/api/health
+- Set `sessionRecap.enableTeamDashboard` to `true`
+- Run **Session Recap: Opt In to Team Sharing**
+- Close VS Code to trigger the upload (sessions post on shutdown)
+
+### Something else went wrong
+
+1. Command Palette → **Session Recap: Show Session Recap Logs**
+2. Copy relevant log lines
+3. [Open an issue on GitHub](https://github.com/Twink26/Sessio/issues) with your VS Code version, steps to reproduce, and the log output
+
+---
+
+## Privacy
+
+- **Local by default** — all tracking and summaries stay on your machine
+- **Sharing is opt-in** — nothing is posted unless you run **Opt In to Team Sharing**
+- **Your API keys** — OpenAI keys are stored in your VS Code settings, not sent anywhere except OpenAI when you enable that provider
+- **Configurable filters** — exclude sensitive file paths and commit patterns from tracking and sharing
+
+For the sharing server, see [server/README.md](server/README.md).
+
+---
+
+## Development
+
+### Prerequisites
+
+- Node.js 18+
+- VS Code 1.74.0+
+- TypeScript 4.9+
+
+### Scripts
+
+```bash
+npm install          # Install dependencies
+npm run compile      # Build once
+npm run watch        # Rebuild on file changes
+npm test             # Run tests
+npm run test:all     # Run all Jest tests
+npm run server       # Start the sharing API + dashboard
+npm run server:dev   # Start server with auto-reload
+```
+
+### Project structure
+
+```
+Sessio/
+├── src/                    # Extension source (TypeScript)
+│   ├── extension.ts        # Entry point
+│   ├── services/           # Tracking, AI, sharing logic
+│   ├── providers/          # Sidebar UI
+│   └── models/             # Data types
+├── server/                 # Optional sharing API + web dashboard
+│   ├── index.js
+│   └── public/             # Landing page + dashboard HTML
+├── package.json            # Extension manifest
+└── README.md               # This file
+```
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE).
+
+---
+
+**Built for developers who are tired of spending the first five minutes back at their desk re-reading their own code.**
+
+[GitHub](https://github.com/Twink26/Sessio) · [Report an issue](https://github.com/Twink26/Sessio/issues)
