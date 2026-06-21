@@ -74,21 +74,27 @@ a { color: inherit; }
 .brand {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
   text-decoration: none;
 }
 
-.brand-mark {
-  color: var(--accent);
-  font-size: 1.1rem;
-}
-
-.brand-name {
+.brand-wordmark {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 1.05rem;
-  letter-spacing: -0.01em;
+  font-size: 1.45rem;
+  letter-spacing: -0.04em;
+  line-height: 1;
   color: var(--text);
+  transition: color 0.12s ease;
+}
+
+.brand-wordmark em {
+  font-style: italic;
+  font-weight: 500;
+  color: var(--accent-bright);
+}
+
+.brand:hover .brand-wordmark {
+  color: var(--accent-bright);
 }
 
 .nav-links {
