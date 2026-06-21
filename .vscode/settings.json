@@ -1,4 +1,5 @@
 {
   "sessionRecap.aiProvider": "openai",
-  "sessionRecap.openaiApiKey": "PASTE_KEY_HERE"
+  "sessionRecap.openaiApiKey": "PASTE_KEY_HERE",
+  "sessionRecap.shareApiUrl": "https://sessio-0js7.onrender.com"
 }
