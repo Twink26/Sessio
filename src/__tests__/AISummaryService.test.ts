@@ -8,7 +8,8 @@ import { TerminalError } from '../models/TerminalError';
 // Mock VS Code API
 jest.mock('vscode', () => ({
   workspace: {
-    getConfiguration: jest.fn()
+    getConfiguration: jest.fn(),
+    onDidChangeConfiguration: jest.fn(() => ({ dispose: jest.fn() }))
   },
   OutputChannel: jest.fn()
 }));
@@ -217,8 +218,18 @@ describe('AISummaryService', () => {
 
       const result = await service.generateSummary(mockSessionData);
       
-      expect(result).toContain('[Local AI]');
-      expect(result).toContain('Modified 1 file');
+      expect(result).toContain('modified file1.ts');
+      expect(result).toContain('made 1 commit');
+    });
+
+    it('should fall back locally when OpenAI fails', async () => {
+      service.updateConfig({ provider: 'openai', apiKey: 'test-key' });
+      ((global as any).fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
+
+      const result = await service.generateSummaryOrFallback(mockSessionData);
+
+      expect(result).toContain('modified file1.ts');
+      expect(result).toContain('made 1 commit');
     });
 
     it('should log errors to output channel', async () => {
@@ -248,7 +259,7 @@ describe('AISummaryService', () => {
       };
 
       const result = service.generateFallbackSummary(sessionData);
-      expect(result).toBe('In your last session, you Modified 1 file.');
+      expect(result).toBe('In your last session, you modified test.ts.');
     });
 
     it('should generate summary with multiple files', () => {
@@ -264,7 +275,7 @@ describe('AISummaryService', () => {
       };
 
       const result = service.generateFallbackSummary(sessionData);
-      expect(result).toBe('In your last session, you Modified 2 files.');
+      expect(result).toBe('In your last session, you modified test1.ts, test2.ts.');
     });
 
     it('should generate summary with commits only', () => {
@@ -314,7 +325,7 @@ describe('AISummaryService', () => {
       };
 
       const result = service.generateFallbackSummary(sessionData);
-      expect(result).toBe('In your last session, you Modified 1 file, made 1 commit, encountered terminal errors.');
+      expect(result).toBe('In your last session, you modified test.ts, made 1 commit, encountered terminal errors.');
     });
 
     it('should handle empty session data', () => {

@@ -28,4 +28,14 @@ export interface ISessionTracker {
    * Save the current session to persistent storage
    */
   saveSession(): Promise<void>;
+
+  /**
+   * Attach a generated summary to the current session before saving
+   */
+  applySummaryToCurrentSession(summary: string): void;
+
+  /**
+   * Store a generated summary on the previous session and persist it
+   */
+  persistPreviousSessionSummary(summary: string): Promise<void>;
 }

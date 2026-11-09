@@ -27,6 +27,11 @@ export interface IAISummaryService {
   generateSummary(sessionData: SessionData): Promise<string>;
 
   /**
+   * Generate an AI summary when configured, otherwise a rule-based fallback
+   */
+  generateSummaryOrFallback(sessionData: SessionData): Promise<string>;
+
+  /**
    * Check if the AI service is available and configured
    * @returns True if the service can generate summaries
    */

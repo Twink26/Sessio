@@ -153,7 +153,7 @@ describe('Configuration Integration Tests', () => {
             // Assert
             expect(config.enabled).toBe(true);
             expect(config.maxCommitsToShow).toBe(10);
-            expect(config.aiProvider).toBe('disabled');
+            expect(config.aiProvider).toBe('local');
         });
     });
 
@@ -172,7 +172,7 @@ describe('Configuration Integration Tests', () => {
             await activate(mockContext);
 
             // Assert
-            expect(mockConfiguration.get).toHaveBeenCalledWith('aiProvider', 'disabled');
+            expect(mockConfiguration.get).toHaveBeenCalledWith('aiProvider', 'local');
             expect(mockConfiguration.get).toHaveBeenCalledWith('openaiApiKey', '');
         });
 
@@ -187,7 +187,7 @@ describe('Configuration Integration Tests', () => {
             await activate(mockContext);
 
             // Assert
-            expect(mockConfiguration.get).toHaveBeenCalledWith('aiProvider', 'disabled');
+            expect(mockConfiguration.get).toHaveBeenCalledWith('aiProvider', 'local');
         });
 
         test('should handle disabled AI provider', async () => {
@@ -202,7 +202,7 @@ describe('Configuration Integration Tests', () => {
             await activate(mockContext);
 
             // Assert
-            expect(mockConfiguration.get).toHaveBeenCalledWith('aiProvider', 'disabled');
+            expect(mockConfiguration.get).toHaveBeenCalledWith('aiProvider', 'local');
             expect(mockConfiguration.get).toHaveBeenCalledWith('enableAISummary', true);
         });
 
@@ -484,7 +484,7 @@ describe('Configuration Integration Tests', () => {
             // Assert
             expect(mockConfiguration.get).toHaveBeenCalledWith('enabled', true);
             expect(mockConfiguration.get).toHaveBeenCalledWith('maxCommitsToShow', 10);
-            expect(mockConfiguration.get).toHaveBeenCalledWith('aiProvider', 'disabled');
+            expect(mockConfiguration.get).toHaveBeenCalledWith('aiProvider', 'local');
         });
     });
 

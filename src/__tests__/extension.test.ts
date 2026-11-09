@@ -28,7 +28,8 @@ jest.mock('vscode', () => ({
             })
         })),
         workspaceFolders: [],
-        openTextDocument: jest.fn()
+        openTextDocument: jest.fn(),
+        onDidChangeConfiguration: jest.fn(() => ({ dispose: jest.fn() }))
     },
     commands: {
         registerCommand: jest.fn(() => ({ dispose: jest.fn() }))

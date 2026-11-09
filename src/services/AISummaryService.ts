@@ -10,11 +10,19 @@ declare const fetch: any;
  */
 export class AISummaryService implements IAISummaryService {
   private config: AISummaryConfig;
+  private summariesEnabled: boolean;
   private outputChannel: vscode.OutputChannel;
 
   constructor(outputChannel: vscode.OutputChannel) {
     this.outputChannel = outputChannel;
     this.config = this.loadConfigFromSettings();
+    this.summariesEnabled = this.loadSummariesEnabled();
+    vscode.workspace.onDidChangeConfiguration((event) => {
+      if (event.affectsConfiguration('sessionRecap')) {
+        this.config = this.loadConfigFromSettings();
+        this.summariesEnabled = this.loadSummariesEnabled();
+      }
+    });
   }
 
   /**
@@ -43,20 +51,35 @@ export class AISummaryService implements IAISummaryService {
   }
 
   /**
+   * Generate an AI summary when possible, otherwise a rule-based fallback.
+   */
+  async generateSummaryOrFallback(sessionData: SessionData): Promise<string> {
+    if (this.isAvailable()) {
+      try {
+        return await this.generateSummary(sessionData);
+      } catch (error) {
+        this.outputChannel.appendLine(
+          `Falling back to local summary: ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
+      }
+    }
+
+    return this.generateFallbackSummary(sessionData);
+  }
+
+  /**
    * Check if the AI service is available and configured
    */
   isAvailable(): boolean {
-    if (this.config.provider === 'disabled') {
+    if (!this.summariesEnabled || this.config.provider === 'disabled') {
       return false;
     }
 
     if (this.config.provider === 'openai') {
-      return !!this.config.apiKey;
+      return !!this.config.apiKey?.trim();
     }
 
     if (this.config.provider === 'local') {
-      // For local provider, we assume it's always available
-      // In a real implementation, this might check for local model availability
       return true;
     }
 
@@ -84,11 +107,16 @@ export class AISummaryService implements IAISummaryService {
     const config = vscode.workspace.getConfiguration('sessionRecap');
     
     return {
-      provider: config.get<AIProvider>('aiProvider', 'disabled'),
+      provider: config.get<AIProvider>('aiProvider', 'local'),
       apiKey: config.get<string>('openaiApiKey'),
       maxTokens: config.get<number>('aiMaxTokens', 150),
       temperature: config.get<number>('aiTemperature', 0.7)
     };
+  }
+
+  private loadSummariesEnabled(): boolean {
+    const config = vscode.workspace.getConfiguration('sessionRecap');
+    return config.get<boolean>('enableAISummary', true);
   }
 
   /**
@@ -99,20 +127,25 @@ export class AISummaryService implements IAISummaryService {
       throw new Error('OpenAI API key not configured');
     }
 
+    const fetchFn = (globalThis as { fetch?: typeof fetch }).fetch;
+    if (!fetchFn) {
+      throw new Error('Fetch API is not available in this environment');
+    }
+
     const prompt = this.buildPrompt(sessionData);
     const controller = new AbortController();
     const timeoutMs = 10_000;
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      const response = await fetchFn('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${this.config.apiKey}`
         },
         body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
+          model: 'gpt-4o-mini',
           messages: [
             {
               role: 'system',
@@ -130,7 +163,13 @@ export class AISummaryService implements IAISummaryService {
       });
 
       if (!response.ok) {
-        throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+        let details = '';
+        try {
+          details = (await response.text()).slice(0, 300);
+        } catch {
+          details = '';
+        }
+        throw new Error(`OpenAI API error: ${response.status} ${response.statusText}${details ? ` - ${details}` : ''}`);
       }
 
       const data = await response.json();
@@ -162,8 +201,7 @@ export class AISummaryService implements IAISummaryService {
     // This is a placeholder for local AI implementation
     // In a real implementation, this would interface with a local model
     
-    const summary = this.generateFallbackSummary(sessionData);
-    return `[Local AI] ${summary}`;
+    return this.generateFallbackSummary(sessionData);
   }
 
   /**
@@ -174,9 +212,14 @@ export class AISummaryService implements IAISummaryService {
 
     // Files summary
     if (sessionData.editedFiles.length > 0) {
-      const fileCount = sessionData.editedFiles.length;
-      const fileWord = fileCount === 1 ? 'file' : 'files';
-      parts.push(`Modified ${fileCount} ${fileWord}`);
+      const fileNames = sessionData.editedFiles.slice(0, 3).map(file => this.getFileName(file.filePath));
+      if (sessionData.editedFiles.length === 1) {
+        parts.push(`modified ${fileNames[0]}`);
+      } else if (sessionData.editedFiles.length <= 3) {
+        parts.push(`modified ${fileNames.join(', ')}`);
+      } else {
+        parts.push(`modified ${sessionData.editedFiles.length} files including ${fileNames.join(', ')}`);
+      }
     }
 
     // Git commits summary
@@ -237,6 +280,12 @@ export class AISummaryService implements IAISummaryService {
     prompt.push('\nProvide a concise 2-3 sentence summary focusing on what was accomplished.');
 
     return prompt.join('\n');
+  }
+
+  private getFileName(filePath: string): string {
+    const normalized = filePath.replace(/\\/g, '/');
+    const segments = normalized.split('/');
+    return segments[segments.length - 1] || filePath;
   }
 }
 

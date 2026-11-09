@@ -54,7 +54,7 @@ describe('ConfigurationService', () => {
         enabled: true,
         maxCommitsToShow: 10,
         enableAISummary: true,
-        aiProvider: 'disabled',
+        aiProvider: 'local',
         openaiApiKey: '',
         aiMaxTokens: 150,
         aiTemperature: 0.7,

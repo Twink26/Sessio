@@ -89,6 +89,15 @@ export class FileChangeMonitor implements IFileChangeMonitor {
         this.handleFileChange(uri, 'deleted');
       })
     );
+
+    // Editor saves are more reliable than filesystem watchers in some hosts (including Cursor).
+    if (typeof vscode.workspace.onDidSaveTextDocument === 'function') {
+      this.disposables.push(
+        vscode.workspace.onDidSaveTextDocument((document) => {
+          this.handleFileChange(document.uri, 'modified');
+        })
+      );
+    }
   }
 
   /**

@@ -4,6 +4,10 @@
   "description": "Provides an AI-generated summary of your previous coding session to help you resume work efficiently",
   "version": "0.0.1",
   "publisher": "Twinkle-rana",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Twink26/Sessio.git"
+  },
   "engines": {
     "vscode": "^1.74.0"
   },
@@ -169,8 +173,8 @@
             "local",
             "disabled"
           ],
-          "default": "disabled",
-          "description": "AI provider for generating summaries"
+          "default": "local",
+          "description": "AI provider for generating summaries. Use local for on-device rule-based summaries, or openai with an API key."
         },
         "sessionRecap.openaiApiKey": {
           "type": "string",

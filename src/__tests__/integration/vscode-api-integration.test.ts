@@ -40,6 +40,10 @@ jest.mock('vscode', () => ({
             index: 0
         }],
         openTextDocument: jest.fn(),
+        asRelativePath: jest.fn((uri: any) => {
+            const fullPath = uri?.fsPath || uri?.path || String(uri);
+            return String(fullPath).replace('/test/workspace/', '');
+        }),
         onDidSaveTextDocument: jest.fn(() => ({ dispose: jest.fn() })),
         onDidChangeTextDocument: jest.fn(() => ({ dispose: jest.fn() })),
         onDidCreateFiles: jest.fn(() => ({ dispose: jest.fn() })),
@@ -503,6 +507,8 @@ describe('VS Code API Integration Tests', () => {
             };
 
             sidebarProvider.resolveWebviewView(mockWebviewView as any, {} as any, {} as any);
+            const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as jest.Mock).mock.calls[0][0];
+            messageHandler({ type: 'ready' });
 
             const sessionData = {
                 sessionId: 'test',
@@ -518,8 +524,8 @@ describe('VS Code API Integration Tests', () => {
 
             // Assert
             expect(mockWebviewView.webview.postMessage).toHaveBeenCalledWith({
-                command: 'updateContent',
-                data: sessionData
+                type: 'updateSession',
+                sessionData
             });
         });
     });

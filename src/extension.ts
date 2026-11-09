@@ -192,11 +192,15 @@ export async function deactivate() {
             await errorHandlingService.executeWithErrorHandling(
                 async () => {
                     const currentSession = sessionTracker.getCurrentSession();
+                    if (aiSummaryService && currentSession) {
+                        const summary = await aiSummaryService.generateSummaryOrFallback(currentSession);
+                        sessionTracker.applySummaryToCurrentSession(summary);
+                    }
                     await sessionTracker.saveSession();
                     
                     // Share session data with team if enabled
                     if (teamDashboardService && currentSession) {
-                        await teamDashboardService.shareSessionData(currentSession);
+                        await teamDashboardService.shareSessionData(sessionTracker.getCurrentSession());
                     }
                 },
                 { component: 'Extension', operation: 'saveSessionOnDeactivate' },
@@ -261,32 +265,16 @@ async function loadAndDisplayPreviousSession() {
             if (previousSession) {
                 errorHandlingService.logInfo('Extension', `Previous session found: ${previousSession.sessionId}`);
                 
-                // Generate AI summary if not already present and AI is enabled
-                if (!previousSession.summary && aiSummaryService.isAvailable()) {
-                    await errorHandlingService.executeWithErrorHandling(
-                        async () => {
-                            errorHandlingService.logInfo('Extension', 'Generating AI summary for previous session...');
-                            const aiSummary = await aiSummaryService.generateSummary(previousSession);
-                            previousSession.summary = aiSummary;
-                            errorHandlingService.logInfo('Extension', 'AI summary generated successfully');
-                        },
-                        { component: 'Extension', operation: 'generateAISummary' },
-                        undefined // Will use fallback from error handler
-                    );
-                    
-                    // If AI summary failed, generate fallback
-                    if (!previousSession.summary) {
-                        previousSession.summary = aiSummaryService.generateFallbackSummary(previousSession);
-                        errorHandlingService.logInfo('Extension', 'Using fallback summary after AI failure');
-                    }
-                } else if (!previousSession.summary) {
-                    // Generate fallback summary if AI is not available
-                    previousSession.summary = aiSummaryService.generateFallbackSummary(previousSession);
-                    errorHandlingService.logInfo('Extension', 'Generated fallback summary (AI disabled)');
+                if (!previousSession.summary && aiSummaryService) {
+                    errorHandlingService.logInfo('Extension', 'Generating session summary...');
+                    const summary = await aiSummaryService.generateSummaryOrFallback(previousSession);
+                    await sessionTracker.persistPreviousSessionSummary(summary);
+                    previousSession.summary = summary;
+                    errorHandlingService.logInfo('Extension', 'Session summary generated successfully');
                 }
 
                 // Update sidebar with previous session data
-                sidebarProvider.updateContent(previousSession);
+                sidebarProvider.updateContent(sessionTracker.getPreviousSession() ?? previousSession);
                 errorHandlingService.logInfo('Extension', 'Previous session displayed in sidebar');
             } else {
                 // Show welcome message for first-time users

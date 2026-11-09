@@ -165,6 +165,25 @@ export class SessionTracker implements ISessionTracker {
     }
 
     /**
+     * Attach a generated summary to the current session before saving
+     */
+    applySummaryToCurrentSession(summary: string): void {
+        this.currentSession.summary = summary;
+    }
+
+    /**
+     * Store a generated summary on the previous session and persist it
+     */
+    async persistPreviousSessionSummary(summary: string): Promise<void> {
+        if (!this.previousSession) {
+            return;
+        }
+
+        this.previousSession.summary = summary;
+        await this.sessionStorage.saveSession(this.previousSession);
+    }
+
+    /**
      * Save the current session to persistent storage
      */
     async saveSession(): Promise<void> {
@@ -276,13 +295,14 @@ export class SessionTracker implements ISessionTracker {
     }
 
     /**
-     * Update the sidebar panel with current session data
+     * Update the sidebar panel with recap data.
+     * Prefer the previous session so live tracking does not wipe the AI summary.
      */
     private updateSidebarContent(): void {
         const timer = this.performanceMonitor.startTimer('SessionTracker.updateSidebarContent');
         
         try {
-            this.sidebarProvider.updateContent(this.currentSession);
+            this.sidebarProvider.updateContent(this.previousSession ?? this.currentSession);
         } catch (error) {
             console.error('Failed to update sidebar content:', error);
         }

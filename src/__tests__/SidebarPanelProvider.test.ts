@@ -89,7 +89,33 @@ describe('SidebarPanelProvider', () => {
             };
 
             provider.resolveWebviewView(mockWebviewView, {} as any, {} as any);
+            const messageHandler = mockWebview.onDidReceiveMessage.mock.calls[0][0];
+            messageHandler({ type: 'ready' });
             provider.updateContent(sessionData);
+
+            expect(mockWebview.postMessage).toHaveBeenCalledWith({
+                type: 'updateSession',
+                sessionData
+            });
+        });
+
+        it('should replay session data after the webview reports ready', () => {
+            const sessionData: SessionData = {
+                sessionId: 'test-session',
+                startTime: new Date(),
+                endTime: new Date(),
+                editedFiles: [],
+                gitCommits: [],
+                terminalErrors: [],
+                summary: 'Test summary'
+            };
+
+            provider.updateContent(sessionData);
+            expect(mockWebview.postMessage).not.toHaveBeenCalled();
+
+            provider.resolveWebviewView(mockWebviewView, {} as any, {} as any);
+            const messageHandler = mockWebview.onDidReceiveMessage.mock.calls[0][0];
+            messageHandler({ type: 'ready' });
 
             expect(mockWebview.postMessage).toHaveBeenCalledWith({
                 type: 'updateSession',

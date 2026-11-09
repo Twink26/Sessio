@@ -171,6 +171,9 @@ describe('Webview Communication Integration Tests', () => {
             // Arrange
             const sidebarProvider = new SidebarPanelProvider(mockContext.extensionUri);
             sidebarProvider.resolveWebviewView(mockWebviewView, {} as any, {} as any);
+            if (messageCallback) {
+                messageCallback({ type: 'ready' });
+            }
 
             const sessionData: SessionData = {
                 sessionId: 'test-session',
@@ -209,8 +212,8 @@ describe('Webview Communication Integration Tests', () => {
 
             // Assert
             expect(mockWebview.postMessage).toHaveBeenCalledWith({
-                command: 'updateContent',
-                data: sessionData
+                type: 'updateSession',
+                sessionData
             });
         });
 
@@ -508,6 +511,9 @@ describe('Webview Communication Integration Tests', () => {
             // Arrange
             const sidebarProvider = new SidebarPanelProvider(mockContext.extensionUri);
             sidebarProvider.resolveWebviewView(mockWebviewView, {} as any, {} as any);
+            if (messageCallback) {
+                messageCallback({ type: 'ready' });
+            }
 
             // Create large session data
             const largeSessionData: SessionData = {
@@ -540,8 +546,8 @@ describe('Webview Communication Integration Tests', () => {
 
             // Assert
             expect(mockWebview.postMessage).toHaveBeenCalledWith({
-                command: 'updateContent',
-                data: largeSessionData
+                type: 'updateSession',
+                sessionData: largeSessionData
             });
         });
 

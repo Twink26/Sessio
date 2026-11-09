@@ -13,6 +13,7 @@ jest.mock('vscode', () => ({
     createFileSystemWatcher: jest.fn(),
     asRelativePath: jest.fn(),
     openTextDocument: jest.fn(),
+    onDidSaveTextDocument: jest.fn(() => ({ dispose: jest.fn() })),
   },
   window: {
     createOutputChannel: jest.fn(() => mockOutputChannel)

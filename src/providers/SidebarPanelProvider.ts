@@ -10,19 +10,25 @@ export class SidebarPanelProvider implements ISidebarPanelProvider, vscode.Webvi
     private _view?: vscode.WebviewView;
     private _extensionUri: vscode.Uri;
     private _fileClickCallback?: (filePath: string) => void;
+    private _lastSessionData?: import('../models/SessionData').SessionData;
+    private _webviewReady = false;
     constructor(extensionUri: vscode.Uri) {
         this._extensionUri = extensionUri;
     }
     resolveWebviewView(webviewView: vscode.WebviewView, context: vscode.WebviewViewResolveContext, _token: vscode.CancellationToken) {
         this._view = webviewView;
+        this._webviewReady = false;
         webviewView.webview.options = {
             enableScripts: true,
             localResourceRoots: [this._extensionUri]
         };
-        webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
-        // Handle messages from the webview
+        // Handle messages from the webview before loading HTML so "ready" is not missed.
         webviewView.webview.onDidReceiveMessage(data => {
             switch (data.type) {
+                case 'ready':
+                    this._webviewReady = true;
+                    this.pushLastSession();
+                    break;
                 case 'fileClick':
                     if (this._fileClickCallback) {
                         this._fileClickCallback(data.filePath);
@@ -34,6 +40,7 @@ export class SidebarPanelProvider implements ISidebarPanelProvider, vscode.Webvi
                     break;
             }
         });
+        webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
     }
     show() {
         if (this._view) {
@@ -42,13 +49,22 @@ export class SidebarPanelProvider implements ISidebarPanelProvider, vscode.Webvi
     }
     hide() {
         // WebviewView doesn't have a hide method, but we can clear content
+        this._webviewReady = false;
         if (this._view) {
             this._view.webview.html = '';
         }
     }
     updateContent(sessionData: import('../models/SessionData').SessionData) {
-        if (this._view) {
-            this._view.webview.postMessage({ type: 'updateSession', sessionData });
+        this._lastSessionData = sessionData;
+        this.pushLastSession();
+    }
+    private pushLastSession() {
+        if (this._view && this._webviewReady && this._lastSessionData) {
+            try {
+                this._view.webview.postMessage({ type: 'updateSession', sessionData: this._lastSessionData });
+            } catch (error) {
+                console.error('Failed to send session data to webview:', error);
+            }
         }
     }
     onFileClick(callback: (filePath: string) => void) {
@@ -348,10 +364,27 @@ export class SidebarPanelProvider implements ISidebarPanelProvider, vscode.Webvi
                         const message = event.data;
                         switch (message.type) {
                             case 'updateSession':
-                                updateSessionDisplay(message.sessionData);
+                                try {
+                                    updateSessionDisplay(message.sessionData);
+                                } catch (error) {
+                                    const content = document.getElementById('content');
+                                    if (content) {
+                                        content.innerHTML = '<div class="empty-state">Could not render session recap. Try Refresh Session Recap.</div>';
+                                    }
+                                }
                                 break;
                         }
                     });
+
+                    vscode.postMessage({ type: 'ready' });
+
+                    function toDate(value) {
+                        if (!value) {
+                            return null;
+                        }
+                        const date = value instanceof Date ? value : new Date(value);
+                        return isNaN(date.getTime()) ? null : date;
+                    }
 
                     function updateSessionDisplay(sessionData) {
                         const content = document.getElementById('content');
@@ -373,8 +406,10 @@ export class SidebarPanelProvider implements ISidebarPanelProvider, vscode.Webvi
                         // Session Overview section
                         html += '<div class="section">';
                         html += '<div class="section-title">📊 Session Overview</div>';
-                        const duration = sessionData.endTime 
-                            ? Math.round((sessionData.endTime.getTime() - sessionData.startTime.getTime()) / 60000)
+                        const startTime = toDate(sessionData.startTime);
+                        const endTime = toDate(sessionData.endTime);
+                        const duration = endTime && startTime
+                            ? Math.round((endTime.getTime() - startTime.getTime()) / 60000)
                             : 'In Progress';
                         const durationText = typeof duration === 'number' ? duration + ' minutes' : duration;
                         html += '<div style="margin-bottom: 8px;">';
