@@ -13,6 +13,7 @@ import { SessionStorage } from './SessionStorage';
 import { PerformanceMonitor } from './PerformanceMonitor';
 import { PerformanceOptimizer } from './PerformanceOptimizer';
 import { ProductivityCalculator } from './ProductivityCalculator';
+import { ChangeContextService } from './ChangeContextService';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
@@ -31,6 +32,7 @@ export class SessionTracker implements ISessionTracker {
     private gitActivityMonitor: IGitActivityMonitor;
     private terminalErrorMonitor: ITerminalErrorMonitor;
     private sessionStorage: ISessionStorage;
+    private changeContextService: ChangeContextService;
     private performanceMonitor: PerformanceMonitor;
     private performanceOptimizer: PerformanceOptimizer;
     
@@ -55,6 +57,7 @@ export class SessionTracker implements ISessionTracker {
         this.gitActivityMonitor = new GitActivityMonitor();
         this.terminalErrorMonitor = new TerminalErrorMonitor();
         this.sessionStorage = new SessionStorage(context);
+        this.changeContextService = new ChangeContextService();
         
         // Create new session
         this.currentSession = this.createNewSession();
@@ -171,6 +174,18 @@ export class SessionTracker implements ISessionTracker {
         this.currentSession.summary = summary;
     }
 
+    async captureChangeDigest(): Promise<void> {
+        this.currentSession.editedFiles = this.fileChangeMonitor.getEditedFiles();
+        const lastError = this.terminalErrorMonitor.getLastError();
+        this.currentSession.terminalErrors = lastError ? [lastError] : this.currentSession.terminalErrors;
+        try {
+            await this.updateGitCommits();
+            this.currentSession.changeDigest = await this.changeContextService.buildDigest(this.currentSession);
+        } catch (error) {
+            console.error('Failed to capture change digest:', error);
+        }
+    }
+
     /**
      * Store a generated summary on the previous session and persist it
      */
@@ -181,6 +196,18 @@ export class SessionTracker implements ISessionTracker {
 
         this.previousSession.summary = summary;
         await this.sessionStorage.saveSession(this.previousSession);
+    }
+
+    async capturePreviousSessionDigest(): Promise<void> {
+        if (!this.previousSession) {
+            return;
+        }
+
+        try {
+            this.previousSession.changeDigest = await this.changeContextService.buildDigest(this.previousSession);
+        } catch (error) {
+            console.error('Failed to capture previous session digest:', error);
+        }
     }
 
     /**
@@ -195,6 +222,10 @@ export class SessionTracker implements ISessionTracker {
             const lastError = this.terminalErrorMonitor.getLastError();
             this.currentSession.terminalErrors = lastError ? [lastError] : [];
             
+            if (!this.currentSession.changeDigest) {
+                await this.captureChangeDigest();
+            }
+
             // Calculate productivity score if session has ended
             if (this.currentSession.endTime) {
                 this.currentSession.productivityScore = ProductivityCalculator.calculateProductivityScore(this.currentSession);

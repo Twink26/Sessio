@@ -56,8 +56,10 @@ describe('ConfigurationService', () => {
         enableAISummary: true,
         aiProvider: 'local',
         openaiApiKey: '',
-        aiMaxTokens: 150,
-        aiTemperature: 0.7,
+        aiBaseUrl: 'https://api.openai.com/v1',
+        aiModel: 'gpt-4o-mini',
+        aiMaxTokens: 900,
+        aiTemperature: 0.4,
         enableTeamDashboard: false,
         privacySettings: {
           shareWithTeam: false,
@@ -140,11 +142,11 @@ describe('ConfigurationService', () => {
       // Valid values
       expect(configurationService.validateConfiguration({ aiMaxTokens: 50 }).isValid).toBe(true);
       expect(configurationService.validateConfiguration({ aiMaxTokens: 500 }).isValid).toBe(true);
-      expect(configurationService.validateConfiguration({ aiMaxTokens: 1000 }).isValid).toBe(true);
+      expect(configurationService.validateConfiguration({ aiMaxTokens: 4000 }).isValid).toBe(true);
 
       // Invalid values
       expect(configurationService.validateConfiguration({ aiMaxTokens: 49 }).isValid).toBe(false);
-      expect(configurationService.validateConfiguration({ aiMaxTokens: 1001 }).isValid).toBe(false);
+      expect(configurationService.validateConfiguration({ aiMaxTokens: 4001 }).isValid).toBe(false);
       expect(configurationService.validateConfiguration({ aiMaxTokens: 100.5 }).isValid).toBe(false);
     });
 

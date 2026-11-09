@@ -161,10 +161,10 @@ describe('AISummaryService', () => {
         'https://api.openai.com/v1/chat/completions',
         expect.objectContaining({
           method: 'POST',
-          headers: {
+          headers: expect.objectContaining({
             'Content-Type': 'application/json',
             'Authorization': 'Bearer test-key'
-          }
+          })
         })
       );
     });
@@ -213,6 +213,36 @@ describe('AISummaryService', () => {
         .rejects.toThrow('Failed to generate OpenAI summary');
     });
 
+    it('should use a custom OpenAI-compatible base URL and model', async () => {
+      service.updateConfig({
+        provider: 'openai',
+        apiKey: 'gsk-test',
+        baseUrl: 'https://api.groq.com/openai/v1',
+        model: 'llama-3.3-70b-versatile'
+      });
+
+      ((global as any).fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          choices: [{ message: { content: '## What you worked on\n- Recap API' } }]
+        })
+      });
+
+      await service.generateSummary(mockSessionData);
+
+      expect((global as any).fetch).toHaveBeenCalledWith(
+        'https://api.groq.com/openai/v1/chat/completions',
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            Authorization: 'Bearer gsk-test'
+          })
+        })
+      );
+      const body = JSON.parse(((global as any).fetch as jest.Mock).mock.calls[0][1].body);
+      expect(body.model).toBe('llama-3.3-70b-versatile');
+      expect(body.messages[0].content).toContain('Features added or attempted');
+    });
+
     it('should generate local AI summary', async () => {
       service.updateConfig({ provider: 'local' });
 
@@ -259,7 +289,7 @@ describe('AISummaryService', () => {
       };
 
       const result = service.generateFallbackSummary(sessionData);
-      expect(result).toBe('In your last session, you modified test.ts.');
+      expect(result).toContain('In your last session, you modified test.ts.');
     });
 
     it('should generate summary with multiple files', () => {
@@ -275,7 +305,7 @@ describe('AISummaryService', () => {
       };
 
       const result = service.generateFallbackSummary(sessionData);
-      expect(result).toBe('In your last session, you modified test1.ts, test2.ts.');
+      expect(result).toContain('In your last session, you modified test1.ts, test2.ts.');
     });
 
     it('should generate summary with commits only', () => {
@@ -290,7 +320,7 @@ describe('AISummaryService', () => {
       };
 
       const result = service.generateFallbackSummary(sessionData);
-      expect(result).toBe('In your last session, you made 1 commit.');
+      expect(result).toContain('In your last session, you made 1 commit.');
     });
 
     it('should generate summary with multiple commits', () => {
@@ -306,7 +336,7 @@ describe('AISummaryService', () => {
       };
 
       const result = service.generateFallbackSummary(sessionData);
-      expect(result).toBe('In your last session, you made 2 commits.');
+      expect(result).toContain('In your last session, you made 2 commits.');
     });
 
     it('should generate summary with all activity types', () => {
@@ -325,7 +355,7 @@ describe('AISummaryService', () => {
       };
 
       const result = service.generateFallbackSummary(sessionData);
-      expect(result).toBe('In your last session, you modified test.ts, made 1 commit, encountered terminal errors.');
+      expect(result).toContain('In your last session, you modified test.ts, made 1 commit, encountered terminal errors.');
     });
 
     it('should handle empty session data', () => {

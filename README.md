@@ -165,42 +165,48 @@ Next day: Open again → recap tells you exactly where you left off
 
 ---
 
-## Optional: AI summaries with OpenAI
+## Optional: detailed AI recaps (any OpenAI-compatible key)
 
-By default, summaries are generated **locally** from your activity (no API key needed). For richer, natural-language summaries, connect OpenAI:
+By default, summaries are a **short local sentence** (no API key). That will not tell you which features you added. For a detailed recap of what you wrote, tried, and what failed, connect any **OpenAI-compatible** API:
 
-### Step 1 — Get an API key
+- [OpenAI](https://platform.openai.com/api-keys)
+- [Groq](https://console.groq.com/keys) (fast, free tier)
+- [OpenRouter](https://openrouter.ai/keys) (many models, one key)
+- [Google Gemini](https://aistudio.google.com/apikey) (OpenAI-compatible endpoint)
+- [DeepSeek](https://platform.deepseek.com/api_keys)
 
-1. Go to [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
-2. Create an API key and copy it
+### Settings
 
-### Step 2 — Add it to VS Code settings
+Open **Settings** (`Ctrl+,`), search `sessionRecap`, and set:
 
-1. Open **Settings** (`Ctrl+,` / `Cmd+,`)
-2. Search for `sessionRecap`
-3. Set these values:
+| Setting | OpenAI | Groq | Gemini | OpenRouter |
+|---------|--------|------|--------|------------|
+| `aiProvider` | `openai` | `openai` | `openai` | `openai` |
+| `openaiApiKey` | your key | your key | your key | your key |
+| `aiBaseUrl` | `https://api.openai.com/v1` | `https://api.groq.com/openai/v1` | `https://generativelanguage.googleapis.com/v1beta/openai` | `https://openrouter.ai/api/v1` |
+| `aiModel` | `gpt-4o-mini` | `llama-3.3-70b-versatile` | `gemini-2.0-flash` | `openai/gpt-4o-mini` |
+| `aiMaxTokens` | `900` | `900` | `900` | `900` |
 
-| Setting | Value |
-|---------|-------|
-| `sessionRecap.aiProvider` | `openai` |
-| `sessionRecap.openaiApiKey` | Your API key |
-| `sessionRecap.enableAISummary` | `true` (default) |
-
-Or add to your `settings.json`:
+Example for Groq in `settings.json`:
 
 ```json
 {
   "sessionRecap.aiProvider": "openai",
-  "sessionRecap.openaiApiKey": "sk-your-key-here",
+  "sessionRecap.openaiApiKey": "gsk-your-groq-key",
+  "sessionRecap.aiBaseUrl": "https://api.groq.com/openai/v1",
+  "sessionRecap.aiModel": "llama-3.3-70b-versatile",
+  "sessionRecap.aiMaxTokens": 900,
   "sessionRecap.enableAISummary": true
 }
 ```
 
-### Step 3 — Reload and test
+The setting is still named `openaiApiKey` even when the key is from another provider. Code diffs and edited-file context are sent only to that provider when a recap is generated (on window reload/close). Skip `.env` and secret files.
 
-Reload the window (**Developer: Reload Window**), do some coding, then close and reopen. Your next recap should use the AI summary.
+### Reload and test
 
-> **Without an OpenAI key:** set `sessionRecap.aiProvider` to `disabled` to use only the local rule-based summary, or leave the default — it falls back automatically when no key is set.
+Save some real code, then **Developer: Reload Window**. The Session Recap panel should show sections for what you worked on, features, code changes, failures, and next steps.
+
+> **Without a key:** leave `aiProvider` as `local`. You will only get a short file-name summary.
 
 ---
 
@@ -285,8 +291,11 @@ All settings live under the `sessionRecap` prefix in VS Code Settings.
 |---------|---------|-------------|
 | `sessionRecap.enabled` | `true` | Turn tracking on or off |
 | `sessionRecap.enableAISummary` | `true` | Enable summary generation |
-| `sessionRecap.aiProvider` | `disabled` | `openai`, `local`, or `disabled` |
-| `sessionRecap.openaiApiKey` | `""` | Your OpenAI API key |
+| `sessionRecap.aiProvider` | `local` | `openai` (any compatible key), `local`, or `disabled` |
+| `sessionRecap.openaiApiKey` | `""` | API key (OpenAI, Groq, Gemini, OpenRouter, DeepSeek, …) |
+| `sessionRecap.aiBaseUrl` | `https://api.openai.com/v1` | Chat Completions base URL for that provider |
+| `sessionRecap.aiModel` | `gpt-4o-mini` | Model id |
+| `sessionRecap.aiMaxTokens` | `900` | Length of the recap |
 | `sessionRecap.maxCommitsToShow` | `10` | Commits shown in the sidebar |
 
 ### Sharing settings

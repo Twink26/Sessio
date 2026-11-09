@@ -13,6 +13,8 @@ export interface AISummaryConfig {
   apiKey?: string;
   maxTokens?: number;
   temperature?: number;
+  baseUrl?: string;
+  model?: string;
 }
 
 /**

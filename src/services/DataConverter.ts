@@ -28,6 +28,7 @@ export class DataConverter {
       gitCommits: sessionData.gitCommits.map(this.toStoredGitCommit),
       terminalErrors: sessionData.terminalErrors.map(this.toStoredTerminalError),
       aiSummary: sessionData.summary,
+      changeDigest: sessionData.changeDigest,
       notes: sessionData.notes,
       tags: sessionData.tags,
       productivityScore: sessionData.productivityScore,
@@ -47,6 +48,7 @@ export class DataConverter {
       gitCommits: storedSession.gitCommits.map(this.fromStoredGitCommit),
       terminalErrors: storedSession.terminalErrors.map(this.fromStoredTerminalError),
       summary: storedSession.aiSummary,
+      changeDigest: storedSession.changeDigest,
       notes: storedSession.notes,
       tags: storedSession.tags,
       productivityScore: storedSession.productivityScore

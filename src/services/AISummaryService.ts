@@ -109,8 +109,10 @@ export class AISummaryService implements IAISummaryService {
     return {
       provider: config.get<AIProvider>('aiProvider', 'local'),
       apiKey: config.get<string>('openaiApiKey'),
-      maxTokens: config.get<number>('aiMaxTokens', 150),
-      temperature: config.get<number>('aiTemperature', 0.7)
+      maxTokens: config.get<number>('aiMaxTokens', 800),
+      temperature: config.get<number>('aiTemperature', 0.4),
+      baseUrl: config.get<string>('aiBaseUrl', 'https://api.openai.com/v1'),
+      model: config.get<string>('aiModel', 'gpt-4o-mini')
     };
   }
 
@@ -134,30 +136,45 @@ export class AISummaryService implements IAISummaryService {
 
     const prompt = this.buildPrompt(sessionData);
     const controller = new AbortController();
-    const timeoutMs = 10_000;
+    const timeoutMs = 25_000;
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    const endpoint = this.getCompletionsUrl();
+    const model = this.config.model?.trim() || 'gpt-4o-mini';
 
     try {
-      const response = await fetchFn('https://api.openai.com/v1/chat/completions', {
+      const response = await fetchFn(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.config.apiKey}`
+          'Authorization': `Bearer ${this.config.apiKey}`,
+          'HTTP-Referer': 'https://github.com/Twink26/Sessio',
+          'X-Title': 'Sessio Session Recap'
         },
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
+          model,
           messages: [
             {
               role: 'system',
-              content: 'You are a helpful assistant that summarizes coding sessions for developers. Keep summaries concise (2-3 sentences) and focus on what was accomplished.'
+              content: [
+                'You write a detailed recap of a developer coding session.',
+                'Use only the evidence provided (files, diffs, commits, errors, notes).',
+                'Do not invent features that are not in the evidence.',
+                'Write in this structure with short bullet points:',
+                '## What you worked on',
+                '## Features added or attempted',
+                '## Code you wrote or changed',
+                '## What failed or is still broken',
+                '## Suggested next steps',
+                'Name concrete files, functions, and user-visible behavior whenever possible.'
+              ].join('\n')
             },
             {
               role: 'user',
               content: prompt
             }
           ],
-          max_tokens: this.config.maxTokens,
-          temperature: this.config.temperature
+          max_tokens: this.config.maxTokens ?? 900,
+          temperature: this.config.temperature ?? 0.4
         }),
         signal: controller.signal
       });
@@ -238,48 +255,57 @@ export class AISummaryService implements IAISummaryService {
       return 'No significant activity detected in the last session.';
     }
 
-    return `In your last session, you ${parts.join(', ')}.`;
+    return `In your last session, you ${parts.join(', ')}. Set sessionRecap.aiProvider to openai and add an API key for a detailed recap of features, code changes, and failures.`;
   }
 
   /**
    * Build a prompt for AI summary generation
    */
   private buildPrompt(sessionData: SessionData): string {
-    const prompt = ['Please summarize this coding session:'];
+    const prompt = [
+      'Write a detailed recap of this coding session so the developer can pick up tomorrow.',
+      'Cover features they added or tried to add, what they actually wrote, and what failed.'
+    ];
 
-    // Add file changes
-    if (sessionData.editedFiles.length > 0) {
-      prompt.push(`\nFiles modified (${sessionData.editedFiles.length}):`);
-      sessionData.editedFiles.slice(0, 10).forEach(file => {
-        prompt.push(`- ${file.filePath} (${file.changeType})`);
-      });
-      if (sessionData.editedFiles.length > 10) {
-        prompt.push(`... and ${sessionData.editedFiles.length - 10} more files`);
+    if (sessionData.notes) {
+      prompt.push(`\nDeveloper notes:\n${sessionData.notes}`);
+    }
+
+    if (sessionData.changeDigest) {
+      prompt.push(`\nSession evidence (diffs, files, commits, errors):\n${sessionData.changeDigest}`);
+    } else {
+      if (sessionData.editedFiles.length > 0) {
+        prompt.push(`\nFiles modified (${sessionData.editedFiles.length}):`);
+        sessionData.editedFiles.slice(0, 25).forEach(file => {
+          prompt.push(`- ${file.filePath} (${file.changeType}${file.lineCount ? `, ${file.lineCount} lines` : ''})`);
+        });
+      }
+
+      if (sessionData.gitCommits.length > 0) {
+        prompt.push(`\nGit commits (${sessionData.gitCommits.length}):`);
+        sessionData.gitCommits.slice(0, 12).forEach(commit => {
+          prompt.push(`- ${commit.message} [${(commit.filesChanged || []).slice(0, 8).join(', ')}]`);
+        });
+      }
+
+      if (sessionData.terminalErrors.length > 0) {
+        prompt.push(`\nTerminal errors:`);
+        sessionData.terminalErrors.slice(0, 8).forEach(error => {
+          prompt.push(`- [${error.errorType}] ${error.message}`);
+        });
       }
     }
 
-    // Add Git commits
-    if (sessionData.gitCommits.length > 0) {
-      prompt.push(`\nGit commits (${sessionData.gitCommits.length}):`);
-      sessionData.gitCommits.slice(0, 5).forEach(commit => {
-        prompt.push(`- ${commit.message}`);
-      });
-      if (sessionData.gitCommits.length > 5) {
-        prompt.push(`... and ${sessionData.gitCommits.length - 5} more commits`);
-      }
-    }
-
-    // Add terminal errors
-    if (sessionData.terminalErrors.length > 0) {
-      prompt.push(`\nTerminal errors encountered:`);
-      sessionData.terminalErrors.slice(0, 3).forEach(error => {
-        prompt.push(`- ${error.message}`);
-      });
-    }
-
-    prompt.push('\nProvide a concise 2-3 sentence summary focusing on what was accomplished.');
-
+    prompt.push('\nIf evidence is thin, say what is known and what cannot be inferred.');
     return prompt.join('\n');
+  }
+
+  private getCompletionsUrl(): string {
+    const base = (this.config.baseUrl || 'https://api.openai.com/v1').trim().replace(/\/+$/, '');
+    if (/\/chat\/completions$/i.test(base)) {
+      return base;
+    }
+    return `${base}/chat/completions`;
   }
 
   private getFileName(filePath: string): string {

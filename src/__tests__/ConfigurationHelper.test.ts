@@ -17,6 +17,8 @@ describe('ConfigurationHelper', () => {
       enableAISummary: true,
       aiProvider: 'openai',
       openaiApiKey: 'test-key',
+      aiBaseUrl: 'https://api.openai.com/v1',
+      aiModel: 'gpt-4o-mini',
       aiMaxTokens: 150,
       aiTemperature: 0.7,
       enableTeamDashboard: false,

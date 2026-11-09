@@ -174,21 +174,33 @@
             "disabled"
           ],
           "default": "local",
-          "description": "AI provider for generating summaries. Use local for on-device rule-based summaries, or openai with an API key."
+          "description": "Use openai for a detailed recap with any OpenAI-compatible API key (OpenAI, Groq, OpenRouter, Gemini, DeepSeek). Use local for a short rule-based summary."
         },
         "sessionRecap.openaiApiKey": {
           "type": "string",
           "default": "",
-          "description": "OpenAI API key for generating summaries"
+          "description": "API key for OpenAI or any OpenAI-compatible provider"
+        },
+        "sessionRecap.aiBaseUrl": {
+          "type": "string",
+          "default": "https://api.openai.com/v1",
+          "description": "Chat Completions base URL. Examples: https://api.openai.com/v1, https://api.groq.com/openai/v1, https://openrouter.ai/api/v1, https://generativelanguage.googleapis.com/v1beta/openai, https://api.deepseek.com"
+        },
+        "sessionRecap.aiModel": {
+          "type": "string",
+          "default": "gpt-4o-mini",
+          "description": "Model id for detailed recaps, e.g. gpt-4o-mini, llama-3.3-70b-versatile, gemini-2.0-flash, deepseek-chat"
         },
         "sessionRecap.aiMaxTokens": {
           "type": "number",
-          "default": 150,
-          "description": "Maximum tokens for AI summary generation"
+          "default": 900,
+          "minimum": 50,
+          "maximum": 4000,
+          "description": "Maximum tokens for the recap. Use 800–1500 for a detailed overview."
         },
         "sessionRecap.aiTemperature": {
           "type": "number",
-          "default": 0.7,
+          "default": 0.4,
           "minimum": 0,
           "maximum": 2,
           "description": "Temperature setting for AI creativity (0-2)"

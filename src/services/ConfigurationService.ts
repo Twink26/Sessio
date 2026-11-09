@@ -12,8 +12,10 @@ export class ConfigurationService implements IConfigurationService {
     enableAISummary: true,
     aiProvider: 'local',
     openaiApiKey: '',
-    aiMaxTokens: 150,
-    aiTemperature: 0.7,
+    aiBaseUrl: 'https://api.openai.com/v1',
+    aiModel: 'gpt-4o-mini',
+    aiMaxTokens: 900,
+    aiTemperature: 0.4,
     enableTeamDashboard: false,
     privacySettings: {
       shareWithTeam: false,
@@ -43,6 +45,8 @@ export class ConfigurationService implements IConfigurationService {
       enableAISummary: config.get<boolean>('enableAISummary', this.defaults.enableAISummary),
       aiProvider: config.get<'openai' | 'local' | 'disabled'>('aiProvider', this.defaults.aiProvider),
       openaiApiKey: config.get<string>('openaiApiKey', this.defaults.openaiApiKey),
+      aiBaseUrl: config.get<string>('aiBaseUrl', this.defaults.aiBaseUrl),
+      aiModel: config.get<string>('aiModel', this.defaults.aiModel),
       aiMaxTokens: config.get<number>('aiMaxTokens', this.defaults.aiMaxTokens),
       aiTemperature: config.get<number>('aiTemperature', this.defaults.aiTemperature),
       enableTeamDashboard: config.get<boolean>('enableTeamDashboard', this.defaults.enableTeamDashboard),
@@ -83,8 +87,8 @@ export class ConfigurationService implements IConfigurationService {
 
     // Validate aiMaxTokens
     if (config.aiMaxTokens !== undefined) {
-      if (!Number.isInteger(config.aiMaxTokens) || config.aiMaxTokens < 50 || config.aiMaxTokens > 1000) {
-        errors.push('aiMaxTokens must be an integer between 50 and 1000');
+      if (!Number.isInteger(config.aiMaxTokens) || config.aiMaxTokens < 50 || config.aiMaxTokens > 4000) {
+        errors.push('aiMaxTokens must be an integer between 50 and 4000');
       }
     }
 

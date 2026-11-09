@@ -128,8 +128,8 @@ export class SidebarPanelProvider implements ISidebarPanelProvider, vscode.Webvi
                         padding: 12px;
                         margin: 8px 0;
                         border-radius: 4px;
-                        font-style: italic;
-                        line-height: 1.4;
+                        line-height: 1.45;
+                        white-space: pre-wrap;
                     }
 
                     .file-item {

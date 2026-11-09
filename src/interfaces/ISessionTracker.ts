@@ -30,6 +30,11 @@ export interface ISessionTracker {
   saveSession(): Promise<void>;
 
   /**
+   * Capture git diffs and file-change context for a detailed recap
+   */
+  captureChangeDigest(): Promise<void>;
+
+  /**
    * Attach a generated summary to the current session before saving
    */
   applySummaryToCurrentSession(summary: string): void;

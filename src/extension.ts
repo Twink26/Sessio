@@ -191,6 +191,7 @@ export async function deactivate() {
             // Save current session before deactivation with error handling
             await errorHandlingService.executeWithErrorHandling(
                 async () => {
+                    await sessionTracker.captureChangeDigest();
                     const currentSession = sessionTracker.getCurrentSession();
                     if (aiSummaryService && currentSession) {
                         const summary = await aiSummaryService.generateSummaryOrFallback(currentSession);
@@ -265,9 +266,14 @@ async function loadAndDisplayPreviousSession() {
             if (previousSession) {
                 errorHandlingService.logInfo('Extension', `Previous session found: ${previousSession.sessionId}`);
                 
-                if (!previousSession.summary && aiSummaryService) {
+                const needsDetailedSummary = !previousSession.summary
+                    || /^In your last session, you /.test(previousSession.summary)
+                    || previousSession.summary === 'No significant activity detected in the last session.';
+                if (needsDetailedSummary && aiSummaryService) {
                     errorHandlingService.logInfo('Extension', 'Generating session summary...');
-                    const summary = await aiSummaryService.generateSummaryOrFallback(previousSession);
+                    await sessionTracker.capturePreviousSessionDigest();
+                    const sessionForSummary = sessionTracker.getPreviousSession() ?? previousSession;
+                    const summary = await aiSummaryService.generateSummaryOrFallback(sessionForSummary);
                     await sessionTracker.persistPreviousSessionSummary(summary);
                     previousSession.summary = summary;
                     errorHandlingService.logInfo('Extension', 'Session summary generated successfully');

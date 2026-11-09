@@ -11,6 +11,8 @@ export interface ExtensionConfig {
   enableAISummary: boolean;
   aiProvider: 'openai' | 'local' | 'disabled';
   openaiApiKey: string;
+  aiBaseUrl: string;
+  aiModel: string;
   aiMaxTokens: number;
   aiTemperature: number;
   enableTeamDashboard: boolean;
@@ -32,6 +34,8 @@ export interface ConfigurationDefaults {
   enableAISummary: boolean;
   aiProvider: 'openai' | 'local' | 'disabled';
   openaiApiKey: string;
+  aiBaseUrl: string;
+  aiModel: string;
   aiMaxTokens: number;
   aiTemperature: number;
   enableTeamDashboard: boolean;
